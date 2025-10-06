@@ -11,9 +11,7 @@ CONFIG_PACKAGE_luci-app-partexp=y
 CONFIG_PACKAGE_luci-app-samba4=y
 CONFIG_PACKAGE_luci-app-tailscale=y
 CONFIG_PACKAGE_luci-app-upnp=y
-# ==================================================
 # DNS & DHCP 服务器 - 增强版 (dnsmasq-full)
-# ==================================================
 # 禁用默认的基础版 dnsmasq (通常会自动处理，显式写出更清晰)
 # CONFIG_PACKAGE_dnsmasq is not set
 # 启用功能完整的 dnsmasq-full
@@ -23,6 +21,41 @@ CONFIG_DNSMASQ_WITH_IPSET=y
 # 为 dnsmasq-full 开启 DNSSEC 验证支持 (推荐，增强安全性)
 CONFIG_DNSMASQ_WITH_DNSSEC=y
 # ==================================================
+CONFIG_TARGET_OPTIONS=y
+# 针对Cortex-A53 CPU的最高级别编译优化
+CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crypto+crc -mcpu=cortex-a53+crypto+crc -mtune=cortex-a53"
+CONFIG_CCACHE=y
+CONFIG_DEVEL=y
+CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+CONFIG_TARGET_ROOTFS_INITRAMFS=n
+# --- 内存管理与性能优化 ---
+CONFIG_PACKAGE_zram-swap=y                              # 使用ZRAM内存压缩作为虚拟内存
+CONFIG_PACKAGE_kmod-lib-lz4=y                           # ZRAM依赖的LZ4压缩库
+CONFIG_KERNEL_TRANSPARENT_HUGEPAGE=y                    # 启用透明大页支持
+CONFIG_KERNEL_TRANSPARENT_HUGEPAGE_ALWAYS=y             # 总是尝试使用透明大页
+CONFIG_KERNEL_ARM_PMU=y                                 # 启用ARM性能监控单元
+CONFIG_KERNEL_PERF_EVENTS=y                             # 启用内核性能事件框架
+# 文件系统支持 (File System Support)
+CONFIG_PACKAGE_block-mount=y
+CONFIG_PACKAGE_automount=y
+# --- 内核模块 ---
+CONFIG_PACKAGE_kmod-fs-ext4=y                             # EXT4 文件系统
+CONFIG_PACKAGE_kmod-fs-ntfs3=y                            # 高性能 NTFS 文件系统
+CONFIG_PACKAGE_kmod-fs-exfat=y                            # exFAT 文件系统
+CONFIG_PACKAGE_kmod-fs-vfat=y                             # FAT32 文件系统
+CONFIG_PACKAGE_kmod-fs-btrfs=y                            # BTRFS 文件系统
+CONFIG_PACKAGE_kmod-fuse=y                                # FUSE 用户空间文件系统
+# --- 命令行工具 ---
+CONFIG_PACKAGE_e2fsprogs=y                                # EXT4 工具
+CONFIG_PACKAGE_ntfs3-utils=y                              # NTFS3 工具
+CONFIG_PACKAGE_exfat-utils=y                              # exFAT 工具
+CONFIG_PACKAGE_fdisk=y
+CONFIG_PACKAGE_gdisk=y
+CONFIG_PACKAGE_sgdisk=y
+CONFIG_PACKAGE_cfdisk=y
+CONFIG_PACKAGE_parted=y
+CONFIG_PACKAGE_lsblk=y
+CONFIG_PACKAGE_blkid=y
 #删除插件
 CONFIG_PACKAGE_luci-app-wol=n
 CONFIG_PACKAGE_luci-app-netspeedtest=n
