@@ -1,16 +1,32 @@
 #科学插件调整
 CONFIG_PACKAGE_luci-app-homeproxy=y
+CONFIG_PACKAGE_luci-app-momo=y                            # momo 代理插件
+CONFIG_PACKAGE_luci-app-nikki=y                           # nikki 代理插件
 #增加插件
+CONFIG_PACKAGE_luci-app-cpufreq=y                         # CPU 频率调节插件
+CONFIG_PACKAGE_luci-app-ramfree=y                         # 手动释放内存插件
 CONFIG_PACKAGE_luci-app-autoreboot=y
 CONFIG_PACKAGE_luci-app-gecoosac=y
-CONFIG_PACKAGE_luci-app-netspeedtest=y
 CONFIG_PACKAGE_luci-app-partexp=y
 CONFIG_PACKAGE_luci-app-samba4=y
 CONFIG_PACKAGE_luci-app-tailscale=y
 CONFIG_PACKAGE_luci-app-upnp=y
-CONFIG_PACKAGE_luci-app-wolplus=y
+# ==================================================
+# DNS & DHCP 服务器 - 增强版 (dnsmasq-full)
+# ==================================================
+# 禁用默认的基础版 dnsmasq (通常会自动处理，显式写出更清晰)
+# CONFIG_PACKAGE_dnsmasq is not set
+# 启用功能完整的 dnsmasq-full
+CONFIG_PACKAGE_dnsmasq-full=y
+# 为 dnsmasq-full 开启 ipset/nftset 支持 (强烈推荐，代理分流依赖此项)
+CONFIG_DNSMASQ_WITH_IPSET=y
+# 为 dnsmasq-full 开启 DNSSEC 验证支持 (推荐，增强安全性)
+CONFIG_DNSMASQ_WITH_DNSSEC=y
+# ==================================================
 #删除插件
 CONFIG_PACKAGE_luci-app-wol=n
+CONFIG_PACKAGE_luci-app-netspeedtest=n
+CONFIG_PACKAGE_luci-app-wolplus=n
 #参数调整
 CONFIG_CCACHE=y
 CONFIG_DEVEL=y
