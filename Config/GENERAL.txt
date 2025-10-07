@@ -1,167 +1,184 @@
-# ==================================================
-# 科学上网插件
-# ==================================================
-CONFIG_PACKAGE_luci-app-homeproxy=y
-CONFIG_PACKAGE_luci-app-momo=y          # momo 代理插件
-CONFIG_PACKAGE_luci-app-nikki=y         # nikki 代理插件
 
-# ==================================================
-# 新增实用插件
-# ==================================================
-CONFIG_PACKAGE_luci-app-cpufreq=y       # CPU 频率调节
-CONFIG_PACKAGE_luci-app-ramfree=y       # 手动释放内存
-CONFIG_PACKAGE_luci-app-autoreboot=y
-CONFIG_PACKAGE_luci-app-gecoosac=y      
-CONFIG_PACKAGE_luci-app-partexp=y      
-CONFIG_PACKAGE_luci-app-samba4=y
-CONFIG_PACKAGE_luci-app-tailscale=y
-CONFIG_PACKAGE_luci-app-upnp=y
+# 性能优化与内存管理
+CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+crypto -mtune=cortex-a53"  # 设置编译优化为 O3，针对 ARMv8-A 架构
+CONFIG_KERNEL_ARM_PMU=y                                  # 启用 ARM 性能监控单元
+CONFIG_KERNEL_PERF_EVENTS=y                              # 启用内核性能事件支持
+CONFIG_KERNEL_TRANSPARENT_HUGEPAGE=y                     # 启用透明大页内存支持
+CONFIG_KERNEL_TRANSPARENT_HUGEPAGE_ALWAYS=y              # 始终启用透明大页内存
+CONFIG_PACKAGE_zram-swap=y                               # 启用 ZRAM 交换分区支持
+CONFIG_PACKAGE_kmod-lib-lz4=y                            # 启用 LZ4 压缩模块（ZRAM 依赖）
 
-# ==================================================
+# USB/存储/外设扩展
+CONFIG_PACKAGE_kmod-usb2=y                               # 启用 USB 2.0 支持
+CONFIG_PACKAGE_kmod-usb3=y                               # 启用 USB 3.0 支持
+CONFIG_PACKAGE_kmod-usb-audio=y                          # 启用 USB 音频设备支持
+CONFIG_PACKAGE_kmod-usb-core=y                           # 启用 USB 核心模块
+CONFIG_PACKAGE_kmod-usb-dwc3=y                           # 启用 USB DWC3 控制器支持
+CONFIG_PACKAGE_kmod-usb-net=y                            # 启用 USB 网络设备支持
+CONFIG_PACKAGE_kmod-usb-net-cdc-eem=y                    # 启用 USB CDC EEM 网络支持
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y                  # 启用 USB CDC 以太网支持
+CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y                   # 启用 USB CDC MBIM 网络支持
+CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y                    # 启用 USB CDC NCM 网络支持
+CONFIG_PACKAGE_kmod-usb-net-cdc-subset=y                 # 启用 USB CDC 子集网络支持
+CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y             # 启用华为 USB CDC NCM 网络支持
+CONFIG_PACKAGE_kmod-usb-net-ipheth=y                     # 启用 USB iPhone 网络共享支持
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y                   # 启用 USB QMI WWAN 网络支持
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-fibocom=y           # 启用 Fibocom USB QMI WWAN 支持
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-quectel=y           # 启用 Quectel USB QMI WWAN 支持
+CONFIG_PACKAGE_kmod-usb-net-rndis=y                      # 启用 USB RNDIS 网络支持
+CONFIG_PACKAGE_kmod-usb-net-rtl8150=y                    # 启用 RTL8150 USB 网卡支持
+CONFIG_PACKAGE_kmod-usb-net-rtl8152=y                    # 启用 RTL8152 USB 网卡支持
+CONFIG_PACKAGE_kmod-usb-ohci=y                           # 启用 USB OHCI 控制器支持
+CONFIG_PACKAGE_kmod-usb-storage=y                        # 启用 USB 存储设备支持
+CONFIG_PACKAGE_kmod-usb-storage-extras=y                 # 启用额外的 USB 存储支持
+CONFIG_PACKAGE_kmod-usb-storage-uas=y                    # 启用 USB UAS 存储协议支持
+CONFIG_PACKAGE_kmod-usb-uhci=y                           # 启用 USB UHCI 控制器支持
+CONFIG_PACKAGE_kmod-usb-xhci=y                           # 启用 USB XHCI 控制器支持
+CONFIG_PACKAGE_usbutils=y                                 # 启用 USB 设备管理工具
+CONFIG_PACKAGE_block-mount=y                             # 启用块设备挂载支持
+CONFIG_PACKAGE_automount=y                               # 启用自动挂载功能
+
+# 文件系统支持与磁盘工具
+CONFIG_PACKAGE_kmod-fs-ext4=y                            # 启用 EXT4 文件系统支持
+CONFIG_PACKAGE_kmod-fs-ntfs3=y                           # 启用高性能 NTFS 文件系统支持
+CONFIG_PACKAGE_kmod-fs-exfat=y                           # 启用 exFAT 文件系统支持
+CONFIG_PACKAGE_kmod-fs-vfat=y                            # 启用 VFAT 文件系统支持
+CONFIG_PACKAGE_kmod-fs-btrfs=y                           # 启用 BTRFS 文件系统支持
+CONFIG_PACKAGE_kmod-fuse=y                               # 启用 FUSE 用户空间文件系统支持
+CONFIG_PACKAGE_e2fsprogs=y                               # 启用 EXT4 文件系统工具
+CONFIG_PACKAGE_ntfs3-utils=y                             # 启用 NTFS3 文件系统工具
+CONFIG_PACKAGE_exfat-utils=y                             # 启用 exFAT 文件系统工具
+CONFIG_PACKAGE_fdisk=y                                   # 启用 fdisk 分区工具
+CONFIG_PACKAGE_gdisk=y                                   # 启用 gdisk 分区工具
+CONFIG_PACKAGE_sgdisk=y                                  # 启用 sgdisk 分区工具
+CONFIG_PACKAGE_cfdisk=y                                  # 启用 cfdisk 分区工具
+CONFIG_PACKAGE_parted=y                                  # 启用 parted 分区工具
+CONFIG_PACKAGE_lsblk=y                                   # 启用 lsblk 块设备列表工具
+CONFIG_PACKAGE_blkid=y                                   # 启用 blkid 块设备识别工具
+CONFIG_PACKAGE_luci-app-diskman=y                        # 启用 LuCI 磁盘管理插件
+CONFIG_PACKAGE_luci-app-partexp=y                        # 启用 LuCI 分区扩展插件
+
+# 网络与内核模块（NFT/TUN/WireGuard/音频/扩展）
+CONFIG_PACKAGE_kmod-nft-arp=y                            # 启用 NFTables ARP 过滤支持
+CONFIG_PACKAGE_kmod-nft-bridge=y                         # 启用 NFTables 网桥支持
+CONFIG_PACKAGE_kmod-nft-connlimit=y                      # 启用 NFTables 连接限制支持
+CONFIG_PACKAGE_kmod-nft-core=y                           # 启用 NFTables 核心模块
+CONFIG_PACKAGE_kmod-nft-dup-inet=y                       # 启用 NFTables 重复数据包支持
+CONFIG_PACKAGE_kmod-nft-fib=y                            # 启用 NFTables FIB 转发支持
+CONFIG_PACKAGE_kmod-nft-fullcone=y                       # 启用 NFTables 全锥形 NAT 支持
+CONFIG_PACKAGE_kmod-nft-nat=y                            # 启用 NFTables NAT 支持
+CONFIG_PACKAGE_kmod-nft-netdev=y                         # 启用 NFTables 网络设备支持
+CONFIG_PACKAGE_kmod-nft-offload=y                        # 启用 NFTables 硬件卸载支持
+CONFIG_PACKAGE_kmod-nft-queue=y                          # 启用 NFTables 队列支持
+CONFIG_PACKAGE_kmod-nft-socket=y                         # 启用 NFTables 套接字支持
+CONFIG_PACKAGE_kmod-nft-tproxy=y                         # 启用 NFTables 透明代理支持
+CONFIG_PACKAGE_kmod-nft-xfrm=y                           # 启用 NFTables XFRM 转换支持
+CONFIG_PACKAGE_kmod-bonding=y                            # 启用网络接口绑定支持
+CONFIG_PACKAGE_kmod-dsa=y                                # 启用分布式交换架构支持
+CONFIG_PACKAGE_kmod-inet-diag=y                          # 启用网络诊断模块
+CONFIG_PACKAGE_kmod-inet-mptcp-diag=y                    # 启用 MPTCP 网络诊断支持
+CONFIG_PACKAGE_kmod-mtd-rw=y                             # 启用 MTD 读写支持
+CONFIG_PACKAGE_kmod-netlink-diag=y                       # 启用 Netlink 诊断支持
+CONFIG_PACKAGE_kmod-sound-core=y                         # 启用音频核心模块
+CONFIG_PACKAGE_kmod-tun=y                                # 启用 TUN/TAP 虚拟网络设备支持
+CONFIG_PACKAGE_kmod-wireguard=y                          # 启用 WireGuard VPN 支持
+CONFIG_PACKAGE_kmod-sched-cake=y                         # 启用 CAKE 流量调度算法
+CONFIG_PACKAGE_kmod-ifb=y                                # 启用中间功能块（IFB）支持
+
+# 防火墙相关
+CONFIG_PACKAGE_firewall4=y                               # 启用 firewall4（基于 NFTables 的最新防火墙）
+CONFIG_PACKAGE_firewall=n                                # 禁用 firewall3（旧版 iptables 防火墙，避免冲突）
+CONFIG_PACKAGE_luci-app-firewall=y                       # 启用 LuCI 防火墙管理插件
+
+# 科学上网/代理/分流相关
+CONFIG_PACKAGE_luci-app-homeproxy=y                      # 启用 HomeProxy 代理插件
+CONFIG_PACKAGE_luci-app-momo=y                           # 启用 Momo 代理插件
+CONFIG_PACKAGE_luci-app-nikki=y                          # 启用 Nikki 代理插件
+CONFIG_PACKAGE_luci-app-mosdns=y                         # 启用 MosDNS 插件
+CONFIG_PACKAGE_dnsmasq-full=y                            # 启用完整版 dnsmasq
+CONFIG_DNSMASQ_WITH_IPSET=y                              # 启用 dnsmasq 的 IPSET 支持
+CONFIG_DNSMASQ_WITH_DNSSEC=y                             # 启用 dnsmasq 的 DNSSEC 支持
+
+# 实用性插件与日常功能
+CONFIG_PACKAGE_luci-app-cpufreq=y                        # 启用 CPU 频率调节插件
+CONFIG_PACKAGE_luci-app-ramfree=y                        # 启用内存释放插件
+CONFIG_PACKAGE_luci-app-autoreboot=y                     # 启用自动重启插件
+CONFIG_PACKAGE_luci-app-gecoosac=y                       # 启用 Gecoosac 插件
+CONFIG_PACKAGE_luci-app-samba4=y                         # 启用 Samba4 文件共享插件
+CONFIG_PACKAGE_luci-app-tailscale=y                      # 启用 Tailscale VPN 插件
+CONFIG_PACKAGE_luci-app-upnp=y                           # 启用 UPnP 插件
+CONFIG_PACKAGE_luci-app-ddns=y                           # 启用动态 DNS 插件
+CONFIG_PACKAGE_luci-app-frpc=y                           # 启用 FRPC 内网穿透客户端插件
+CONFIG_PACKAGE_luci-app-ttyd=y                           # 启用 TTYD 终端插件
+CONFIG_PACKAGE_luci-app-argon-config=y                   # 启用 Argon 主题配置插件
+CONFIG_PACKAGE_luci-theme-argon=y                        # 启用 Argon 主题
+
 # 禁用不必要插件
-# ==================================================
-CONFIG_PACKAGE_luci-app-wol=n
-CONFIG_PACKAGE_luci-app-netspeedtest=n
-CONFIG_PACKAGE_luci-app-wolplus=n
+CONFIG_PACKAGE_luci-app-wol=n                            # 禁用 Wake-on-LAN 插件
+CONFIG_PACKAGE_luci-app-netspeedtest=n                   # 禁用网络速度测试插件
+CONFIG_PACKAGE_luci-app-wolplus=n                        # 禁用 Wake-on-LAN 增强插件
 
-# ==================================================
-# DNS & DHCP 增强（dnsmasq-full）
-# ==================================================
-# CONFIG_PACKAGE_dnsmasq is not set
-CONFIG_PACKAGE_dnsmasq-full=y
-CONFIG_DNSMASQ_WITH_IPSET=y             # 代理分流必需
-CONFIG_DNSMASQ_WITH_DNSSEC=y            # DNS 安全验证
+# Docker 容器引擎与核心组件
+CONFIG_PACKAGE_dockerd=m                                 # 启用 Docker 守护进程（模块化）
+CONFIG_PACKAGE_docker=m                                  # 启用 Docker 命令行客户端（模块化）
+CONFIG_PACKAGE_docker-compose=m                          # 启用 Docker Compose（模块化）
+CONFIG_PACKAGE_containerd=m                              # 启用 Containerd 容器运行时（模块化）
+CONFIG_PACKAGE_runc=m                                    # 启用 runc OCI 容器运行时（模块化）
+CONFIG_PACKAGE_tini=m                                    # 启用 Tini 轻量级 init 程序（模块化）
+CONFIG_DOCKER_CGROUP_OPTIONS=y                           # 启用 Docker Cgroup 资源控制
+CONFIG_DOCKER_NET_MACVLAN=y                              # 启用 Docker MacVLAN 网络驱动
+CONFIG_DOCKER_OPTIONAL_FEATURES=y                        # 启用 Docker 可选特性
+CONFIG_DOCKER_STO_EXT4=y                                 # 设置 EXT4 作为 Docker 存储驱动
+CONFIG_PACKAGE_luci-app-dockerman=m                      # 启用 Docker 管理插件（模块化）
+CONFIG_PACKAGE_luci-lib-docker=m                         # 启用 Docker LuCI 库（模块化）
+CONFIG_PACKAGE_luci-i18n-dockerman-zh-cn=m               # 启用 Docker 管理插件中文语言包（模块化）
+CONFIG_PACKAGE_kmod-br-netfilter=m                       # 启用网桥 Netfilter 支持（模块化）
+CONFIG_PACKAGE_kmod-veth=m                               # 启用虚拟以太网设备支持（模块化）
+CONFIG_PACKAGE_kmod-macvlan=m                            # 启用 MacVLAN 网络驱动支持（模块化）
+CONFIG_PACKAGE_kmod-nf-ipvs=m                            # 启用 IPVS 负载均衡支持（模块化）
+CONFIG_KERNEL_CGROUP_DEVICE=y                            # 启用 Cgroup 设备控制器
+CONFIG_KERNEL_CGROUP_FREEZER=y                           # 启用 Cgroup Freezer 控制器
+CONFIG_KERNEL_CGROUP_HUGETLB=y                           # 启用 Cgroup 大页内存控制器
+CONFIG_KERNEL_CGROUP_NET_PRIO=y                          # 启用 Cgroup 网络优先级控制器
+CONFIG_KERNEL_CGROUP_PERF=y                              # 启用 Cgroup 性能事件支持
+CONFIG_KERNEL_NET_CLS_CGROUP=y                          # 启用 Cgroup 网络流量类别控制器
+CONFIG_KERNEL_MEMCG_SWAP_ENABLED=y                       # 启用 Cgroup 内存 Swap 支持
 
-# ==================================================
-# 编译与目标选项
-# ==================================================
-CONFIG_TARGET_OPTIONS=y
-CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+crypto -mtune=cortex-a53"  
-CONFIG_CCACHE=y
-CONFIG_DEVEL=y
-CONFIG_TARGET_MULTI_PROFILE=y
-CONFIG_TARGET_PER_DEVICE_ROOTFS=y
-CONFIG_TARGET_ROOTFS_INITRAMFS=n
+# LuCI/基础依赖
+CONFIG_PACKAGE_luci-base=y                               # 启用 LuCI 基础包
+CONFIG_PACKAGE_luci-compat=y                             # 启用 LuCI 兼容性包
+CONFIG_PACKAGE_luci-lib-base=y                           # 启用 LuCI 基础库
+CONFIG_PACKAGE_luci-lib-ipkg=y                           # 启用 LuCI IPKG 库
+CONFIG_PACKAGE_luci-lua-runtime=y                        # 启用 LuCI Lua 运行时
+CONFIG_PACKAGE_luci-proto-relay=y                        # 启用 LuCI 协议中继支持
 
-# ==================================================
-# 内存与性能优化
-# ==================================================
-CONFIG_PACKAGE_zram-swap=y
-CONFIG_PACKAGE_kmod-lib-lz4=y           # ZRAM 依赖
-CONFIG_KERNEL_TRANSPARENT_HUGEPAGE=y
-CONFIG_KERNEL_TRANSPARENT_HUGEPAGE_ALWAYS=y
-CONFIG_KERNEL_ARM_PMU=y
-CONFIG_KERNEL_PERF_EVENTS=y
+# 编译配置
+CONFIG_TARGET_OPTIONS=y                                  # 启用目标编译选项
+CONFIG_CCACHE=y                                          # 启用编译缓存
+CONFIG_DEVEL=y                                           # 启用开发模式
+CONFIG_TARGET_ROOTFS_INITRAMFS=n                         # 禁用 Initramfs 根文件系统
 
-# ==================================================
-# 文件系统支持
-# ==================================================
-CONFIG_PACKAGE_block-mount=y
-CONFIG_PACKAGE_automount=y
+# 其他基础工具
+CONFIG_PACKAGE_autocore=y                                # 启用自动核心优化工具
+CONFIG_PACKAGE_cpufreq=y                                 # 启用 CPU 频率调节工具
+CONFIG_PACKAGE_dmesg=y                                   # 启用 dmesg 日志查看工具
+CONFIG_PACKAGE_htop=y                                    # 启用 htop 系统监控工具
+CONFIG_PACKAGE_iperf3=y                                  # 启用 iperf3 网络性能测试工具
+CONFIG_PACKAGE_ip-full=y                                 # 启用完整版 IP 工具
+CONFIG_PACKAGE_libimobiledevice=y                        # 启用 iOS 设备连接库
+CONFIG_PACKAGE_mmc-utils=y                               # 启用 MMC 存储管理工具
+CONFIG_PACKAGE_nand-utils=y                              # 启用 NAND 存储管理工具
+CONFIG_PACKAGE_openssh-keygen=y                          # 启用 OpenSSH 密钥生成工具
+CONFIG_PACKAGE_openssh-sftp-server=y                     # 启用 OpenSSH SFTP 服务器
+CONFIG_PACKAGE_openssl-util=y                            # 启用 OpenSSL 工具
+CONFIG_PACKAGE_proto-bonding=y                           # 启用网络接口绑定协议
+CONFIG_PACKAGE_sfdisk=y                                  # 启用 sfdisk 分区工具
+CONFIG_PACKAGE_coremark=y                                # 启用 CoreMark 性能测试工具
+CONFIG_PACKAGE_cgdisk=y                                  # 启用 cgdisk 分区工具
+CONFIG_PACKAGE_usbmuxd=y                                 # 启用 USB 设备多路复用工具
+CONFIG_PACKAGE_ddns-scripts-cloudflare=y                 # 启用 Cloudflare 动态 DNS 脚本
 
-# 内核模块
-CONFIG_PACKAGE_kmod-fs-ext4=y
-CONFIG_PACKAGE_kmod-fs-ntfs3=y          # 高性能 NTFS
-CONFIG_PACKAGE_kmod-fs-exfat=y
-CONFIG_PACKAGE_kmod-fs-vfat=y
-CONFIG_PACKAGE_kmod-fs-btrfs=y
-CONFIG_PACKAGE_kmod-fuse=y
-
-# 命令行工具
-CONFIG_PACKAGE_e2fsprogs=y              # EXT4 工具
-CONFIG_PACKAGE_ntfs3-utils=y
-CONFIG_PACKAGE_exfat-utils=y
-CONFIG_PACKAGE_fdisk=y
-CONFIG_PACKAGE_gdisk=y
-CONFIG_PACKAGE_sgdisk=y
-CONFIG_PACKAGE_cfdisk=y
-CONFIG_PACKAGE_parted=y
-CONFIG_PACKAGE_lsblk=y
-CONFIG_PACKAGE_blkid=y
-
-# ==================================================
-# 网络与内核模块（NFT / USB / Tunneling）
-# ==================================================
-CONFIG_PACKAGE_kmod-bonding=y
-CONFIG_PACKAGE_kmod-dsa=y
-CONFIG_PACKAGE_kmod-inet-diag=y
-CONFIG_PACKAGE_kmod-inet-mptcp-diag=y
-CONFIG_PACKAGE_kmod-mtd-rw=y
-CONFIG_PACKAGE_kmod-netlink-diag=y
-
-# NFT 全套支持（用于 HomeProxy / TProxy 等）
-CONFIG_PACKAGE_kmod-nft-arp=y
-CONFIG_PACKAGE_kmod-nft-bridge=y
-CONFIG_PACKAGE_kmod-nft-connlimit=y
-CONFIG_PACKAGE_kmod-nft-core=y
-CONFIG_PACKAGE_kmod-nft-dup-inet=y
-CONFIG_PACKAGE_kmod-nft-fib=y
-CONFIG_PACKAGE_kmod-nft-fullcone=y
-CONFIG_PACKAGE_kmod-nft-nat=y
-CONFIG_PACKAGE_kmod-nft-netdev=y
-CONFIG_PACKAGE_kmod-nft-offload=y
-CONFIG_PACKAGE_kmod-nft-queue=y
-CONFIG_PACKAGE_kmod-nft-socket=y
-CONFIG_PACKAGE_kmod-nft-tproxy=y
-CONFIG_PACKAGE_kmod-nft-xfrm=y
-
-# USB 支持
-CONFIG_PACKAGE_kmod-usb3=y
-CONFIG_PACKAGE_kmod-usb-audio=y
-CONFIG_PACKAGE_kmod-usb-core=y
-CONFIG_PACKAGE_kmod-usb-dwc3=y
-CONFIG_PACKAGE_kmod-usb-net=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-eem=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-subset=y
-CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y
-CONFIG_PACKAGE_kmod-usb-net-ipheth=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-fibocom=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-quectel=y
-CONFIG_PACKAGE_kmod-usb-net-rndis=y
-CONFIG_PACKAGE_kmod-usb-net-rtl8150=y
-CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
-CONFIG_PACKAGE_kmod-usb-ohci=y
-CONFIG_PACKAGE_kmod-usb-storage=y
-CONFIG_PACKAGE_kmod-usb-storage-extras=y
-CONFIG_PACKAGE_kmod-usb-storage-uas=y
-CONFIG_PACKAGE_kmod-usb-uhci=y
-CONFIG_PACKAGE_kmod-usb-xhci=y
-
-# 其他网络模块
-CONFIG_PACKAGE_kmod-sound-core=y
-CONFIG_PACKAGE_kmod-tun=y
-CONFIG_PACKAGE_kmod-wireguard=y
-
-# ==================================================
-# 基础组件与工具
-# ==================================================
-CONFIG_PACKAGE_autocore=y
-CONFIG_PACKAGE_cpufreq=y
-CONFIG_PACKAGE_dmesg=y
-CONFIG_PACKAGE_htop=y
-CONFIG_PACKAGE_iperf3=y
-CONFIG_PACKAGE_ip-full=y
-CONFIG_PACKAGE_libimobiledevice=y
-CONFIG_PACKAGE_mmc-utils=y
-CONFIG_PACKAGE_nand-utils=y
-CONFIG_PACKAGE_openssh-keygen=y
-CONFIG_PACKAGE_openssh-sftp-server=y
-CONFIG_PACKAGE_openssl-util=y
-CONFIG_PACKAGE_proto-bonding=y
-CONFIG_PACKAGE_sfdisk=y
-CONFIG_PACKAGE_coremark=y
-CONFIG_PACKAGE_cgdisk=y
-CONFIG_PACKAGE_usbmuxd=y
-CONFIG_PACKAGE_usbutils=y
-
-# LuCI 基础依赖
-CONFIG_PACKAGE_luci-base=y
-CONFIG_PACKAGE_luci-compat=y
-CONFIG_PACKAGE_luci-lib-base=y
-CONFIG_PACKAGE_luci-lib-ipkg=y
-CONFIG_PACKAGE_luci-lua-runtime=y
-CONFIG_PACKAGE_luci-proto-relay=y
+# 区域/语言包
+CONFIG_PACKAGE_default-settings=y                        # 启用默认设置包
+CONFIG_PACKAGE_default-settings-chn=y                    # 启用中文默认设置
+CONFIG_LUCI_LANG_zh_Hans=y                               # 启用 LuCI 简体中文语言包
