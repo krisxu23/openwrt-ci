@@ -159,6 +159,12 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+      - name: Ensure Scripts Permissions
+        run: |
+          # 强制为所有 Scripts/*.sh 添加可执行权限
+          chmod +x $GITHUB_WORKSPACE/Scripts/*.sh
+          echo "All Scripts/*.sh now executable."
+
       - name: Custom Packages
         run: |
           cd ./wrt/package/
