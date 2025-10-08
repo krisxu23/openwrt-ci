@@ -1,4 +1,4 @@
-#云编译公用核心
+# 云编译公用核心
 name: WRT-CORE
 
 on:
@@ -104,9 +104,17 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
+      - name: Inject USB WAN Script
+        run: |
+          cd ./wrt/
+          # 确保 usb_wan_setup.sh 可执行
+          chmod +x $GITHUB_WORKSPACE/Scripts/usb_wan_setup.sh
+          # 调用 Scripts 目录下的 usb_wan_setup.sh 脚本
+          $GITHUB_WORKSPACE/Scripts/usb_wan_setup.sh
+
       - name: Check Scripts
         run: |
-          find ./ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
+          find ./ -maxdepth 3 -type f -iregex ".*$$ txt\|sh $$$" -exec dos2unix {} \; -exec chmod +x {} \;
 
       - name: Check Caches
         id: check-cache
@@ -208,11 +216,11 @@ jobs:
             echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
             echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
 
-            find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
+            find ./bin/targets/ -iregex ".*$$ buildinfo\|json\|sha256sums\|packages $$$" -exec rm -rf {} +
 
             for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
               EXT=$(basename $FILE | cut -d '.' -f 2-)
-              NAME=$(basename $FILE | cut -d '.' -f 1 | grep -io "\($WRT_TARGET\).*")
+              NAME=$(basename $FILE | cut -d '.' -f 1 | grep -io "$$ $WRT_TARGET $$.*")
               NEW_FILE="$WRT_INFO"-"$WRT_BRANCH"-"$NAME"-"$WRT_DATE"."$EXT"
               mv -f $FILE ./upload/$NEW_FILE
             done
