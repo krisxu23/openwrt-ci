@@ -1,41 +1,60 @@
+# ===============================================================
 # 性能优化与内存管理
-CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+crypto -mtune=cortex-a53"  # 设置编译优化为 O3，针对 ARMv8-A 架构
-CONFIG_KERNEL_ARM_PMU=y                                  # 启用 ARM 性能监控单元
-CONFIG_KERNEL_PERF_EVENTS=y                              # 启用内核性能事件支持
-CONFIG_KERNEL_TRANSPARENT_HUGEPAGE=y                     # 启用透明大页内存支持
-CONFIG_KERNEL_TRANSPARENT_HUGEPAGE_ALWAYS=y              # 始终启用透明大页内存
-CONFIG_PACKAGE_zram-swap=y                               # 启用 ZRAM 交换分区支持
-CONFIG_PACKAGE_kmod-lib-lz4=y                            # 启用 LZ4 压缩模块（ZRAM 依赖）
+# ===============================================================
+CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+crypto -mtune=cortex-a53"
+CONFIG_KERNEL_ARM_PMU=y
+CONFIG_KERNEL_PERF_EVENTS=y
+CONFIG_KERNEL_TRANSPARENT_HUGEPAGE=y
+CONFIG_KERNEL_TRANSPARENT_HUGEPAGE_ALWAYS=y
+CONFIG_PACKAGE_zram-swap=y
+CONFIG_PACKAGE_kmod-lib-lz4=y
 
-# USB/存储/外设扩展
-CONFIG_PACKAGE_kmod-usb2=y                               # 启用 USB 2.0 支持
-CONFIG_PACKAGE_kmod-usb3=y                               # 启用 USB 3.0 支持
-CONFIG_PACKAGE_kmod-usb-audio=y                          # 启用 USB 音频设备支持
-CONFIG_PACKAGE_kmod-usb-core=y                           # 启用 USB 核心模块
-CONFIG_PACKAGE_kmod-usb-dwc3=y                           # 启用 USB DWC3 控制器支持
-CONFIG_PACKAGE_kmod-usb-net=y                            # 启用 USB 网络设备支持
-CONFIG_PACKAGE_kmod-usb-net-cdc-eem=y                    # 启用 USB CDC EEM 网络支持
-CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y                  # 启用 USB CDC 以太网支持
-CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y                   # 启用 USB CDC MBIM 网络支持
-CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y                    # 启用 USB CDC NCM 网络支持
-CONFIG_PACKAGE_kmod-usb-net-cdc-subset=y                 # 启用 USB CDC 子集网络支持
-CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y             # 启用华为 USB CDC NCM 网络支持
-CONFIG_PACKAGE_kmod-usb-net-ipheth=y                     # 启用 USB iPhone 网络共享支持
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y                   # 启用 USB QMI WWAN 网络支持
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-fibocom=y           # 启用 Fibocom USB QMI WWAN 支持
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-quectel=y           # 启用 Quectel USB QMI WWAN 支持
-CONFIG_PACKAGE_kmod-usb-net-rndis=y                      # 启用 USB RNDIS 网络支持
-CONFIG_PACKAGE_kmod-usb-net-rtl8150=y                    # 启用 RTL8150 USB 网卡支持
-CONFIG_PACKAGE_kmod-usb-net-rtl8152=y                    # 启用 RTL8152 USB 网卡支持
-CONFIG_PACKAGE_kmod-usb-ohci=y                           # 启用 USB OHCI 控制器支持
-CONFIG_PACKAGE_kmod-usb-storage=y                        # 启用 USB 存储设备支持
-CONFIG_PACKAGE_kmod-usb-storage-extras=y                 # 启用额外的 USB 存储支持
-CONFIG_PACKAGE_kmod-usb-storage-uas=y                    # 启用 USB UAS 存储协议支持
-CONFIG_PACKAGE_kmod-usb-uhci=y                           # 启用 USB UHCI 控制器支持
-CONFIG_PACKAGE_kmod-usb-xhci=y                           # 启用 USB XHCI 控制器支持
-CONFIG_PACKAGE_usbutils=y                                 # 启用 USB 设备管理工具
-CONFIG_PACKAGE_block-mount=y                             # 启用块设备挂载支持
-CONFIG_PACKAGE_automount=y                               # 启用自动挂载功能
+# ===============================================================
+# USB 完整支持
+# ===============================================================
+
+# --- 核心工具 (必须) ---
+CONFIG_PACKAGE_usbutils=y                      # 提供 lsusb 诊断命令
+CONFIG_PACKAGE_usb-modeswitch=y                # 核心：用于将模块从"U盘模式"切换到"Modem模式"
+CONFIG_PACKAGE_jshn=y                          # 提供 jsonfilter 工具 (LuCI 依赖，我们的脚本也需要)
+# --- 基础 USB 控制器 ---
+CONFIG_PACKAGE_kmod-usb-core=y
+CONFIG_PACKAGE_kmod-usb2=y
+CONFIG_PACKAGE_kmod-usb3=y
+CONFIG_PACKAGE_kmod-usb-dwc3=y                 # DesignWare USB3 控制器
+CONFIG_PACKAGE_kmod-usb-ohci=y                 # OHCI 控制器
+CONFIG_PACKAGE_kmod-usb-uhci=y                 # UHCI 控制器
+CONFIG_PACKAGE_kmod-usb-xhci=y                 # XHCI 控制器 (USB 3.x)
+# --- 常见 USB 有线网卡 ---
+CONFIG_PACKAGE_kmod-usb-net=y
+CONFIG_PACKAGE_kmod-usb-net-asix-ax88179=y     # ASIX AX88179/178A (千兆)
+CONFIG_PACKAGE_kmod-usb-net-rtl8150=y          # Realtek RTL8150
+CONFIG_PACKAGE_kmod-usb-net-rtl8152=y          # Realtek RTL8152/8153 (千兆, 极常见)
+CONFIG_PACKAGE_kmod-usb-net-smsc95xx=y         # SMSC LAN95xx
+# --- 手机 USB 网络共享 ---
+CONFIG_PACKAGE_kmod-usb-net-rndis=y            # Android (RNDIS 兼容模式)
+CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y        # Android (标准 CDC Ethernet 模式)
+CONFIG_PACKAGE_kmod-usb-net-cdc-subset=y       # CDC Subset 驱动
+CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y          # Android (NCM 高速模式)
+CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y   # 华为 NCM 模式
+CONFIG_PACKAGE_kmod-usb-net-ipheth=y           # iPhone
+# --- 4G/5G USB 模块 (Modem) ---
+CONFIG_PACKAGE_kmod-usb-serial=y               # 串口基础
+CONFIG_PACKAGE_kmod-usb-serial-option=y        # 通用串口模块驱动
+CONFIG_PACKAGE_kmod-usb-serial-wwan=y          # WWAN 专用串口
+CONFIG_PACKAGE_kmod-usb-net-cdc-eem=y          # CDC EEM 协议
+CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y         # MBIM 协议驱动 (现代模块标准)
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y         # 高通 QMI 协议驱动
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-fibocom=y # 移远 (Fibocom) QMI 模块增强
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-quectel=y # 广和通 (Quectel) QMI 模块增强
+CONFIG_PACKAGE_uqmi=y                          # QMI 协议命令行工具
+# --- USB 存储与外设 ---
+CONFIG_PACKAGE_kmod-usb-storage=y              # U盘/硬盘支持
+CONFIG_PACKAGE_kmod-usb-storage-extras=y       # 额外的存储设备支持 (例如读卡器)
+CONFIG_PACKAGE_kmod-usb-storage-uas=y          # UASP 高速模式
+CONFIG_PACKAGE_kmod-usb-audio=y                # USB 声卡支持
+CONFIG_PACKAGE_block-mount=y                   # 挂载工具
+CONFIG_PACKAGE_automount=y                     # 自动挂载
 
 # 文件系统支持与磁盘工具
 CONFIG_PACKAGE_kmod-fs-ext4=y                            # 启用 EXT4 文件系统支持
