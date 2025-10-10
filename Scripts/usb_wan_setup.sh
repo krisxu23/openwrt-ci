@@ -1,75 +1,146 @@
 #!/bin/bash
+#
+# USB WAN 自动配置 - 最终模块化安装脚本
+#
 
 echo " "
-echo "Injecting SIMPLIFIED USB WAN auto-config (Mutually Exclusive Mode)..."
+echo "正在安装模块化 USB WAN 自动配置脚本..."
+echo "这将会创建三个文件："
+echo "  1. /usr/bin/usb-wan-handler.sh  (核心逻辑)"
+echo "  2. /etc/hotplug.d/net/99-usb-wan (热插拔触发器)"
+echo "  3. /etc/init.d/usb-wan           (开机自启触发器)"
+echo " "
 
-# 确保在正确目录
-if [ -d "./wrt" ]; then
-    cd ./wrt/
+# --- 1. 创建核心逻辑脚本 ---
+# 这个脚本包含了所有的配置、重启和验证逻辑
+mkdir -p /usr/bin
+cat <<'EOF' > /usr/bin/usb-wan-handler.sh
+#!/bin/sh
+# USB WAN 核心处理逻辑脚本
+
+# 从第一个参数获取设备名
+DEV="$1"
+
+# 如果没有提供设备名，则退出
+if [ -z "$DEV" ]; then
+    logger -t usb-wan-handler "错误：没有提供设备名称。"
+    exit 1
 fi
 
-# 创建目录
-mkdir -p ./files/etc/hotplug.d/net
-mkdir -p ./files/etc/init.d
+# --- 锁机制，防止并发执行 ---
+LOCK_FILE="/var/run/usb-wan-handler.lock"
+if [ -e "$LOCK_FILE" ] && [ -d "/proc/$(cat $LOCK_FILE)" ]; then
+    logger -t usb-wan-handler "检测到已有进程正在配置，本次事件 '$DEV' 将被跳过。"
+    exit 0
+fi
+echo $$ > "$LOCK_FILE"
+# 脚本退出时自动删除锁文件
+trap 'rm -f "$LOCK_FILE"' EXIT
 
-# 1. 极简 net 热插拔脚本
-cat <<'EOF' > ./files/etc/hotplug.d/net/99-usb-wan
+logger -t usb-wan-handler "开始处理设备 '$DEV'..."
+
+# 最终验证这确实是一个USB网络设备
+if ! ([ -d "/sys/class/net/$DEV/device" ] && readlink "/sys/class/net/$DEV/device" | grep -qi "usb"); then
+    logger -t usb-wan-handler "设备 '$DEV' 不是一个有效的USB网络设备，已跳过。"
+    exit 0
+fi
+
+logger -t usb-wan-handler "✅ 确认 '$DEV' 是USB网络设备，开始配置..."
+
+# 1. 配置 network 和 firewall
+uci set network.usb_wan='interface'
+uci set network.usb_wan.proto='dhcp'
+uci set network.usb_wan.device="$DEV"
+uci set network.usb_wan.defaultroute='1'
+uci set network.usb_wan.peerdns='1'
+uci set network.usb_wan.ipv6='0'
+uci set network.usb_wan.metric='10'
+
+# DSA 架构兼容
+if uci -q get network.@device[0] >/dev/null; then
+    uci delete network.usb_wan.ifname 2>/dev/null
+else
+    uci set network.usb_wan.ifname="$DEV"
+fi
+
+# 添加到 'wan' 防火墙区域
+WAN_ZONE=$(uci show firewall | awk -F'[.=]' '/\.name='\''wan'\''/{print $2; exit}')
+[ -n "$WAN_ZONE" ] || WAN_ZONE="wan"
+if uci -q get firewall."$WAN_ZONE" >/dev/null; then
+    # 先清理旧的列表项再添加，防止重复
+    uci remove_list firewall."$WAN_ZONE".network="usb_wan" 2>/dev/null
+    uci add_list firewall."$WAN_ZONE".network="usb_wan"
+fi
+
+uci commit network
+uci commit firewall
+logger -t usb-wan-handler "💾 配置已保存。"
+
+# 2. 关键修复：重启接口并等待网关就绪
+logger -t usb-wan-handler "🚀 正在重启接口 'usb_wan'..."
+ifdown usb_wan 2>/dev/null
+sleep 1
+ifup usb_wan
+
+# 轮询获取网关，取代固定sleep
+GATEWAY=""
+RETRY_COUNT=0
+MAX_RETRIES=15 # 最多等待15秒
+logger -t usb-wan-handler "⏳ 正在等待网关地址就绪..."
+while [ -z "$GATEWAY" ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    # 检查jsonfilter是否存在
+    if [ ! -x "/usr/bin/jsonfilter" ]; then
+        logger -t usb-wan-handler "错误: jsonfilter 工具未找到 (通常由 jshn 包提供)。"
+        break
+    fi
+    GATEWAY=$(ubus call network.interface.usb_wan status 2>/dev/null | jsonfilter -e '@.route[0].nexthop')
+    [ -z "$GATEWAY" ] && sleep 1
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+done
+
+if [ -n "$GATEWAY" ]; then
+    logger -t usb-wan-handler "✅ 成功获取到网关: $GATEWAY (耗时${RETRY_COUNT}秒)"
+    # 再次验证默认路由
+    if ! ip route show default | grep -q "dev $DEV"; then
+        logger -t usb-wan-handler "⚠️ 默认路由仍缺失，尝试手动添加..."
+        ip route add default via "$GATEWAY" dev "$DEV"
+    fi
+    # 测试连通性
+    if ping -c 2 -W 3 "$GATEWAY" >/dev/null 2>&1; then
+        logger -t usb-wan-handler "🎉🎉🎉 网络连接成功！网关 ($GATEWAY) 可达。"
+    else
+        logger -t usb-wan-handler "❌ 警告：网关 ($GATEWAY) 无法 Ping 通。"
+    fi
+else
+    logger -t usb-wan-handler "❌ 错误：在${MAX_RETRIES}秒内未能获取到网关地址！"
+fi
+EOF
+
+# --- 2. 创建热插拔触发器 ---
+# 这个脚本非常简单，只负责在事件发生时调用核心脚本
+mkdir -p /etc/hotplug.d/net
+cat <<'EOF' > /etc/hotplug.d/net/99-usb-wan
 #!/bin/sh
-# USB WAN 自动配置 - 互斥模式
-# 插入USB时自动创建并启动usb_wan，拔掉后自动回退到有线WAN
+# USB WAN 热插拔触发器
 
+# 仅在设备添加时触发
 [ "$ACTION" = "add" ] || exit 0
 
 DEV="${DEVICENAME:-$INTERFACE}"
 [ -n "$DEV" ] || exit 0
 
-logger -t usb-wan "USB设备检测: $DEV"
+logger -t usb-wan-hotplug "检测到设备 '$DEV' 插入，正在调用核心处理器..."
 
-# USB网络设备匹配
-case "$DEV" in
-    usb*|eth*|wwan*|enx*|cdc*|rndis*|ncm*|ecm*|huawei*|zte*)
-        if [ -d "/sys/class/net/$DEV/device" ] && readlink "/sys/class/net/$DEV/device" | grep -qi usb; then
-            logger -t usb-wan "创建USB_WAN接口: $DEV"
-            
-            # 创建/更新usb_wan接口
-            uci set network.usb_wan='interface'
-            uci set network.usb_wan.proto='dhcp'
-            uci set network.usb_wan.device="$DEV"
-            uci set network.usb_wan.defaultroute='1'    # 直接作为默认路由
-            uci set network.usb_wan.peerdns='1'
-            uci set network.usb_wan.ipv6='0'            # 禁用IPv6
-            
-            # DSA架构兼容
-            if uci -q get network.@device[0] >/dev/null; then
-                uci delete network.usb_wan.ifname 2>/dev/null
-            else
-                uci set network.usb_wan.ifname="$DEV"
-            fi
-            
-            # 防火墙配置
-            WAN_ZONE=$(uci show firewall | awk -F'[.=]' '/\.name='\''wan'\''/{print $2; exit}')
-            [ -n "$WAN_ZONE" ] || WAN_ZONE="wan"
-            
-            if uci -q get firewall.$WAN_ZONE >/dev/null; then
-                CUR_NETS=$(uci -q get firewall.$WAN_ZONE.network 2>/dev/null || echo '')
-                echo "$CUR_NETS" | grep -qw "usb_wan" || uci add_list firewall.$WAN_ZONE.network="usb_wan"
-            fi
-            
-            # 提交配置并启动
-            uci commit network
-            uci commit firewall
-            
-            # 立即启动USB_WAN（将成为默认路由）
-            (sleep 3 && ifup usb_wan && logger -t usb-wan "USB_WAN已上线，成为默认路由") &
-        fi
-        ;;
-esac
+# 在后台调用核心逻辑脚本，并传递设备名
+/usr/bin/usb-wan-handler.sh "$DEV" &
 EOF
 
-# 2. 简化启动脚本
-cat <<'EOF' > ./files/etc/init.d/usb-wan
+# --- 3. 创建开机自启触发器 ---
+# 这个脚本也只负责在开机时扫描设备并调用核心脚本
+mkdir -p /etc/init.d
+cat <<'EOF' > /etc/init.d/usb-wan
 #!/bin/sh /etc/rc.common
-# USB WAN 启动检测
+# USB WAN 启动检测服务
 
 START=99
 USE_PROCD=1
@@ -77,53 +148,32 @@ USE_PROCD=1
 start_service() {
     procd_open_instance
     procd_set_param command /bin/sh -c "
+        # 延迟20秒，等待系统完全就绪
         sleep 20
-        logger -t usb-wan '启动USB设备扫描...'
+        logger -t usb-wan-init '系统启动: 开始扫描已连接的USB网络设备...'
         
-        # 扫描启动时已插入的USB设备
-        for dev in /sys/class/net/*; do
-            dev_name=\$(basename \"\$dev\")
+        # 扫描所有网络接口
+        for dev_path in /sys/class/net/*; do
+            dev_name=\$(basename \"\$dev_path\")
+            
+            # 匹配可能的USB设备类型
             case \"\$dev_name\" in
                 usb*|eth*|wwan*|enx*|cdc*|rndis*)
-                    if [ -d \"\$dev/device\" ] && readlink \"\$dev/device\" | grep -qi usb; then
-                        logger -t usb-wan \"启动发现USB设备: \$dev_name\"
+                    # 确认是USB设备
+                    if [ -d \"\$dev_path/device\" ] && readlink \"\$dev_path/device\" | grep -qi 'usb'; then
+                        logger -t usb-wan-init \"启动时发现USB设备: \$dev_name，正在调用核心处理器...\"
                         
-                        # 配置USB_WAN
-                        uci set network.usb_wan='interface'
-                        uci set network.usb_wan.proto='dhcp'
-                        uci set network.usb_wan.device=\"\$dev_name\"
-                        uci set network.usb_wan.defaultroute='1'
-                        uci set network.usb_wan.peerdns='1'
-                        uci set network.usb_wan.ipv6='0'
+                        # 在后台调用核心逻辑脚本
+                        /usr/bin/usb-wan-handler.sh \"\$dev_name\" &
                         
-                        if uci -q get network.@device[0] >/dev/null; then
-                            uci delete network.usb_wan.ifname 2>/dev/null
-                        else
-                            uci set network.usb_wan.ifname=\"\$dev_name\"
-                        fi
-                        
-                        # 防火墙
-                        WAN_ZONE=\$(uci show firewall | awk -F'[.=]' '/\\.name='\\''wan'\\''/{print \$2; exit}')
-                        [ -n \"\$WAN_ZONE\" ] || WAN_ZONE=\"wan\"
-                        
-                        if uci -q get firewall.\$WAN_ZONE >/dev/null; then
-                            CUR_NETS=\$(uci -q get firewall.\$WAN_ZONE.network 2>/dev/null || echo '')
-                            echo \"\$CUR_NETS\" | grep -qw \"usb_wan\" || uci add_list firewall.\$WAN_ZONE.network=\"usb_wan\"
-                        fi
-                        
-                        uci commit network
-                        uci commit firewall
-                        
-                        # 启动USB_WAN
-                        (sleep 5 && ifup usb_wan && logger -t usb-wan \"启动时USB_WAN已上线\") &
+                        # 找到第一个后就退出循环
                         break
                     fi
                     ;;
             esac
         done
+        logger -t usb-wan-init '系统启动扫描完成。'
     "
-    procd_set_param stdout 1
-    procd_set_param stderr 1
     procd_close_instance
 }
 
@@ -132,25 +182,20 @@ boot() {
 }
 EOF
 
-# 权限设置
-chmod +x ./files/etc/hotplug.d/net/99-usb-wan
-chmod +x ./files/etc/init.d/usb-wan
+# --- 4. 设置权限并启用服务 ---
+chmod +x /usr/bin/usb-wan-handler.sh
+chmod +x /etc/hotplug.d/net/99-usb-wan
+chmod +x /etc/init.d/usb-wan
+/etc/init.d/usb-wan enable
 
-echo "✅ 极简版 USB WAN 配置完成!"
 echo " "
-echo "🎯 工作模式: 互斥使用"
-echo "  📱 插入USB → 自动创建usb_wan，设为默认路由"
-echo "  🔌 拔掉USB → 自动回退到有线WAN"
-echo "  🔄 不会同时使用两个网络"
+echo "✅ 安装完成！"
 echo " "
-echo "⚡ 核心配置:"
-echo "  - defaultroute=1 (USB直接作为默认路由)"
-echo "  - 无需metric优先级"
-echo "  - 无需防抖锁"
-echo "  - 无需路由监控"
+echo "🎯 工作模式:"
+echo "  - 核心逻辑分离，易于维护。"
+echo "  - 支持热插拔和开机自动检测。"
+echo "  - 自动修复路由，轮询等待网关，稳定可靠。"
 echo " "
-echo "💡 使用方式:"
-echo "  1. 用宽带: 插入网线到WAN口"
-echo "  2. 用USB: 插入随身WiFi，自动切换"
-echo "  3. 切换时无需任何手动配置"
+echo "💡 现在您可以插入USB网络设备进行测试了。"
+echo "   使用 'logread -f' 命令可以实时查看日志。"
 echo " "
