@@ -86,3 +86,11 @@ if [ -f "$DM_FILE" ]; then
 
 	cd $PKG_PATH && echo "diskman has been fixed!"
 fi
+
+
+#=================================================
+# Call the USB WAN setup script
+#=================================================
+# 这会执行我们独立的USB WAN配置脚本
+$GITHUB_WORKSPACE/Scripts/usb_wan_setup.sh
+#=================================================
