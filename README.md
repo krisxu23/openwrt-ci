@@ -1,4 +1,3 @@
-<div align="center">
 <h1>OpenWrt — 云编译</h1>
 
 ## 特别提示 [![](https://img.shields.io/badge/-个人免责声明-FFFFFF.svg)](#特别提示-)
@@ -27,4 +26,3 @@
 
 <a href="#readme">
 <img src="https://img.shields.io/badge/-返回顶部-FFFFFF.svg" title="返回顶部" align="right"/>
-</a>
