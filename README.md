@@ -14,7 +14,7 @@
 
 ## 仓库说明
 - 本人 Fork 的仓库：[ImmortalWrt](https://github.com/laipeng668/immortalwrt) [LibWrt](https://github.com/laipeng668/openwrt-6.x)，内容大体一致。
-- 增加了自动检测随身WIFI自动检测，插进USB设备自动创建usb共享网络wan口。
+- 增加了随身WIFI自动检测，插进USB设备自动创建usb共享网络wan口，少数识别不了的需要手动创建。
 - `ImmortalWrt` 和 `LibWrt` 相互印证。
 - `LibWrt` 因为 DTS 更为丰富，所以支持更多的机型。
 
