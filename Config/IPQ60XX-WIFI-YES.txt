@@ -3,8 +3,9 @@ CONFIG_TARGET_qualcommax=y                               # 设置目标平台为
 CONFIG_TARGET_qualcommax_ipq60xx=y                       # 设置目标子平台为 Qualcomm IPQ60xx 系列 SoC
 CONFIG_TARGET_MULTI_PROFILE=y                            # 启用多设备配置文件支持
 CONFIG_TARGET_PER_DEVICE_ROOTFS=y                        # 启用每个设备独立的根文件系统
-CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-ss-01=y  # 编译京东云无线宝 RE-SS-01 型号的固件
 CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+crypto -mtune=cortex-a53"
+
+CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-ss-01=y  # 编译京东云无线宝 RE-SS-01 型号的固件
 
 # NSS 网络硬件加速 + 无线
 # CONFIG_NSS_FIRMWARE_VERSION_11_4=n                     # 设置 NSS 固件版本为 11.4
