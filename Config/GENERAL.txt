@@ -1,7 +1,6 @@
 # ===============================================================
 # 性能优化与内存管理
 # ===============================================================
-CONFIG_TARGET_OPTIMIZATION="-O3 -pipe -march=armv8-a+crc+crypto -mtune=cortex-a53"
 CONFIG_KERNEL_ARM_PMU=y
 CONFIG_KERNEL_PERF_EVENTS=y
 CONFIG_KERNEL_TRANSPARENT_HUGEPAGE=y
