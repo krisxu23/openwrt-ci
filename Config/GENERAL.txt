@@ -97,7 +97,6 @@ CONFIG_PACKAGE_luci-app-cpufreq=y                        # 启用 CPU 频率调�
 CONFIG_PACKAGE_luci-app-ramfree=y                        # 启用内存释放插件
 CONFIG_PACKAGE_luci-app-autoreboot=y                     # 启用自动重启插件
 CONFIG_PACKAGE_luci-app-gecoosac=y                       # 启用 Gecoosac 插件
-CONFIG_PACKAGE_luci-app-samba4=y                         # 启用 Samba4 文件共享插件
 CONFIG_PACKAGE_luci-app-adguardhome=y                    # 启用adguardhome去广告 插件
 CONFIG_PACKAGE_luci-app-frpc=y                           # 启用 FRPC 内网穿透客户端插件
 CONFIG_PACKAGE_luci-app-ttyd=y                           # 启用 TTYD 终端插件
