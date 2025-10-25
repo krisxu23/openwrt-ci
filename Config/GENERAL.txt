@@ -27,7 +27,6 @@ CONFIG_PACKAGE_kmod-usb-net-smsc95xx=y         # SMSC LAN95xx
 # --- 手机 USB 网络共享 ---
 CONFIG_PACKAGE_kmod-usb-net-rndis=y            # Android (RNDIS 兼容模式)
 CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y        # Android (标准 CDC Ethernet 模式)
-CONFIG_PACKAGE_kmod-usb-net-cdc-subset=y       # CDC Subset 驱动
 CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y          # Android (NCM 高速模式)
 CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y   # 华为 NCM 模式
 CONFIG_PACKAGE_kmod-usb-net-ipheth=y           # iPhone
@@ -87,7 +86,6 @@ CONFIG_PACKAGE_luci-app-homeproxy=y                      # 启用 HomeProxy 代�
 CONFIG_PACKAGE_luci-app-momo=y                           # 启用 Momo 代理插件
 CONFIG_PACKAGE_luci-app-nikki=y                          # 启用 Nikki 代理插件
 CONFIG_PACKAGE_luci-app-passwall=y                       # 启用 passwall 代理插件
-CONFIG_PACKAGE_luci-app-mosdns=y                         # 启用 MosDNS 插件
 CONFIG_PACKAGE_dnsmasq-full=y                            # 启用完整版 dnsmasq
 CONFIG_DNSMASQ_WITH_IPSET=y                              # 启用 dnsmasq 的 IPSET 支持
 CONFIG_DNSMASQ_WITH_DNSSEC=y                             # 启用 dnsmasq 的 DNSSEC 支持
@@ -116,6 +114,7 @@ CONFIG_TARGET_OPTIONS=y                                  # 启用目标编译选
 CONFIG_CCACHE=y                                          # 启用编译缓存
 CONFIG_DEVEL=y                                           # 启用开发模式
 CONFIG_TARGET_ROOTFS_INITRAMFS=n                         # 禁用 Initramfs 根文件系统
+CONFIG_USE_APK=n                                         # 禁用 APK 
 
 # 其他基础工具
 CONFIG_PACKAGE_autocore=y                                # 启用自动核心优化工具
