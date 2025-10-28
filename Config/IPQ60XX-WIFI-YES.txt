@@ -5,3 +5,14 @@ CONFIG_TARGET_MULTI_PROFILE=y                            # 启用多设备配置
 CONFIG_TARGET_PER_DEVICE_ROOTFS=y                        # 启用每个设备独立的根文件系统
 
 CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-ss-01=y  # 编译京东云无线宝 RE-SS-01 型号的固件
+
+# NSS关键硬件与专属软件包配置
+CONFIG_ATH11K_MEM_PROFILE_512M=y
+CONFIG_PACKAGE_ath11k-firmware-qca6018=y
+CONFIG_PACKAGE_kmod-ath11k=y
+CONFIG_PACKAGE_kmod-qca-nss-drv=y
+CONFIG_PACKAGE_kmod-qca-nss-dp=y
+CONFIG_PACKAGE_kmod-qca-nss-ecm=y
+CONFIG_PACKAGE_kmod-qca-nss-gmac=y
+CONFIG_PACKAGE_kmod-qca-nss-ppe=y
+CONFIG_PACKAGE_kmod-dwc3-qcom=y
