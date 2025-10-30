@@ -87,6 +87,8 @@ CONFIG_PACKAGE_kmod-wireguard=y
 CONFIG_PACKAGE_kmod-dwc3-qcom=y
 CONFIG_PACKAGE_qcom_rmtfs_mem=y
 CONFIG_PACKAGE_irqbalance=y
+CONFIG_PACKAGE_wpad-openssl=y
+CONFIG_PACKAGE_wireguard-tools=y
 
 # ================================
 # USB 支持核心工具
