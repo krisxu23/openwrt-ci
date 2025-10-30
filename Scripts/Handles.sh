@@ -2,6 +2,23 @@
 
 PKG_PATH="$GITHUB_WORKSPACE/wrt/package/"
 
+# --- 新增代码开始 ---
+# 添加内存回收补丁配置
+# 首先定义 .config 文件的路径
+WRT_ConfigPath="$GITHUB_WORKSPACE/wrt/.config"
+if [ -f "$WRT_ConfigPath" ]; then
+    echo " "
+    echo "Adding SKB Recycler kernel config..."
+    cat >> "$WRT_ConfigPath" <<EOF
+
+# SKB Recycler for performance optimization
+CONFIG_KERNEL_SKB_RECYCLER=y
+CONFIG_KERNEL_SKB_RECYCLER_MULTI_CPU=y
+EOF
+    echo "Successful: addSkbRecyclerConfig"
+fi
+# --- 新增代码结束 ---
+
 #预置HomeProxy数据
 if [ -d *"homeproxy"* ]; then
 	echo " "
