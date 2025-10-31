@@ -13,6 +13,7 @@ CONFIG_PACKAGE_luci-i18n-athena-led-zh-cn=m
 # IPQ6018 专属驱动
 CONFIG_PACKAGE_ipq-wifi-jdcloud_re-ss-01=y
 CONFIG_PACKAGE_ath11k-firmware-qca6018=y
+CONFIG_PACKAGE_luci-app-sqm-nss=y
 CONFIG_PACKAGE_kmod-ath11k=y
 CONFIG_PACKAGE_kmod-qca-nss-drv=y
 CONFIG_PACKAGE_kmod-qca-nss-dp=y
