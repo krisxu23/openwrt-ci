@@ -1,14 +1,14 @@
-name: Build IPQ60XX Firmware (24.10-nss)
+name: 24.10(stable)-IPQ60XX-qosmio
 
 on:
   workflow_dispatch:
     inputs:
       PACKAGE:
-        description: '手动添加插件包，多个请用 \\n 分隔'
+        description: '手动调整插件包，多个请用\n符号隔开。'
         required: false
         type: string
       TEST:
-        description: '是否只生成配置，不编译固件'
+        description: '仅输出配置文件，不编译固件。'
         default: 'false'
         required: false
         type: boolean
@@ -20,13 +20,13 @@ jobs:
     name: Build IPQ60XX Firmware
     runs-on: ubuntu-latest
     env:
-      WRT_TARGET: qualcommax
       WRT_CONFIG: IPQ60XX-WIFI-YES
       WRT_THEME: argon
       WRT_NAME: ImmortalWrt
       WRT_SSID: ImmortalWrt
       WRT_WORD: 12345678
       WRT_IP: 192.168.2.1
+      WRT_PW: 无
       WRT_REPO: https://github.com/qosmio/openwrt-ipq.git
       WRT_BRANCH: 24.10-nss
       WRT_SOURCE: qosmio/openwrt-ipq
@@ -42,22 +42,24 @@ jobs:
         run: |
           sudo apt update -yqq
           sudo apt install -y build-essential flex bison gawk gcc-multilib g++-multilib gettext \
-            libncurses5-dev libncursesw5-dev zlib1g-dev libssl-dev libelf-dev \
-            python3 python3-setuptools rsync unzip file wget curl git subversion bc dos2unix \
-            python3-netifaces libfuse-dev libpam0g-dev libtirpc-dev liblzma-dev libev-dev libsnmp-dev -y
+              libncurses5-dev libncursesw5-dev zlib1g-dev libssl-dev libelf-dev \
+              python3 python3-setuptools rsync unzip file wget curl git subversion bc dos2unix \
+              python3-netifaces libfuse-dev libpam0g-dev libtirpc-dev libev-dev liblzma-dev libsnmp-dev -y
           sudo apt purge -yqq firefox
           sudo apt full-upgrade -yqq
           sudo apt autoremove --purge -yqq
           sudo apt autoclean -yqq
           sudo apt clean -yqq
+          sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+          sudo systemctl daemon-reload
+          sudo timedatectl set-timezone "Asia/Shanghai"
           sudo mkdir -p /mnt/build_wrt
           sudo chown $USER:$USER /mnt/build_wrt
           ln -s /mnt/build_wrt $GITHUB_WORKSPACE/wrt
-          sudo timedatectl set-timezone "Asia/Shanghai"
 
       - name: Clone firmware source
         run: |
-          git clone --depth=1 --branch $WRT_BRANCH $WRT_REPO ./wrt/
+          git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
           cd ./wrt/
           echo "WRT_HASH=$(git log -1 --pretty=format:'%h')" >> $GITHUB_ENV
 
@@ -65,20 +67,27 @@ jobs:
         run: |
           find ./ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
 
-      - name: Prepare config
+      - name: Prepare feeds
+        run: |
+          cd ./wrt/
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Apply configuration
         run: |
           cd ./wrt/
           cp nss-setup/config-nss.seed .config
           make defconfig -j$(nproc)
 
-          # 使用你仓库 Scripts 和 Config 生成完整配置
+          # 使用仓库 Scripts 和 Config 生成完整配置
           $GITHUB_WORKSPACE/Scripts/Packages.sh
-          $GITHUB_WORKSPACE/Scripts/Handles.sh
+          $GITHUB_WORKSPACE/Scripts/Handles.sh || true
           cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
           $GITHUB_WORKSPACE/Scripts/Settings.sh
 
-          # 设置 NSS 固件版本，避免缺失
+          # 强制设置 NSS 固件版本
           echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> .config
+
           make defconfig -j$(nproc)
           make clean -j$(nproc)
 
@@ -94,7 +103,7 @@ jobs:
           cd ./wrt/
           make -j$(nproc) || make -j1 V=s
 
-      - name: Package firmware and config
+      - name: Package firmware
         run: |
           cd ./wrt/ && mkdir -p ./upload/
           cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_SOURCE"-"$WRT_BRANCH"-$(date +'%y.%m.%d-%H.%M.%S').txt
