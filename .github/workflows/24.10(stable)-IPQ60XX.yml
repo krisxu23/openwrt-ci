@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       PACKAGE:
-        description: '手动调整插件包，多个请用\n符号隔开。'
+        description: '手动调整插件包，多个请用\\n符号隔开。'
         required: false
         type: string
       TEST:
@@ -12,165 +12,112 @@ on:
         default: 'false'
         required: false
         type: boolean
-  workflow_run:
-    workflows: ["Auto-Clean"]
-    types:
-      - completed
 
 permissions: write-all
 
 jobs:
   build:
-    name: Build ${{ matrix.CONFIG }}
+    name: Build IPQ60XX Firmware
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        CONFIG: [IPQ60XX-WIFI-YES]
-        SOURCE: [qosmio/openwrt-ipq]
-        BRANCH: [24.10-nss]
-
     env:
-      WRT_CONFIG: ${{ matrix.CONFIG }}
+      WRT_CONFIG: IPQ60XX-WIFI-YES
       WRT_THEME: argon
       WRT_NAME: ImmortalWrt
       WRT_SSID: ImmortalWrt
       WRT_WORD: 12345678
       WRT_IP: 192.168.2.1
       WRT_PW: 无
-      WRT_REPO: https://github.com/${{ matrix.SOURCE }}.git
-      WRT_BRANCH: ${{ matrix.BRANCH }}
-      WRT_SOURCE: ${{ matrix.SOURCE }}
-      WRT_PACKAGE: ${{ github.event.inputs.PACKAGE }}
-      WRT_TEST: ${{ github.event.inputs.TEST }}
+      WRT_REPO: https://github.com/qosmio/openwrt-ipq.git
+      WRT_BRANCH: 24.10-nss
+      WRT_SOURCE: qosmio/openwrt-ipq
+      WRT_PACKAGE: ${{ inputs.PACKAGE }}
+      WRT_TEST: ${{ inputs.TEST }}
+      DEBIAN_FRONTEND: noninteractive
 
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Initialize Environment
-        env:
-          DEBIAN_FRONTEND: noninteractive
+      - name: Setup build environment
         run: |
-          sudo -E apt -yqq update
-          sudo -E apt -yqq install -y \
-            build-essential flex bison gawk gcc-multilib g++-multilib \
-            gettext libncurses5-dev libncursesw5-dev \
-            zlib1g-dev libssl-dev libelf-dev \
-            python3 python3-setuptools \
-            rsync unzip file wget curl git subversion bc dos2unix python3-netifaces libfuse-dev
-          sudo -E apt -yqq purge firefox
-          sudo -E apt -yqq full-upgrade
-          sudo -E apt -yqq autoremove --purge
-          sudo -E apt -yqq autoclean
-          sudo -E apt -yqq clean
-
+          sudo apt update -yqq
+          sudo apt install -y build-essential flex bison gawk gcc-multilib g++-multilib gettext \
+              libncurses5-dev libncursesw5-dev zlib1g-dev libssl-dev libelf-dev \
+              python3 python3-setuptools rsync unzip file wget curl git subversion bc dos2unix \
+              python3-netifaces libfuse-dev -y
+          sudo apt purge -yqq firefox
+          sudo apt full-upgrade -yqq
+          sudo apt autoremove --purge -yqq
+          sudo apt autoclean -yqq
+          sudo apt clean -yqq
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
-          sudo -E systemctl daemon-reload
-          sudo -E timedatectl set-timezone "Asia/Shanghai"
-
+          sudo systemctl daemon-reload
+          sudo timedatectl set-timezone "Asia/Shanghai"
           sudo mkdir -p /mnt/build_wrt
           sudo chown $USER:$USER /mnt/build_wrt
-          sudo ln -s /mnt/build_wrt $GITHUB_WORKSPACE/wrt
+          ln -s /mnt/build_wrt $GITHUB_WORKSPACE/wrt
 
-      - name: Set Initialization Values
-        run: |
-          echo "WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d-%H.%M.%S")" >> $GITHUB_ENV
-          echo "WRT_MARK=${GITHUB_REPOSITORY%%/*}" >> $GITHUB_ENV
-          echo "WRT_INFO=${WRT_SOURCE%%/*}" >> $GITHUB_ENV
-          echo "WRT_TARGET=$(grep -m 1 -oP '^CONFIG_TARGET_\K[\w]+(?=\=y)' ./Config/$WRT_CONFIG.txt)" >> $GITHUB_ENV
-          echo "WRT_KVER=none" >> $GITHUB_ENV
-          echo "WRT_LIST=none" >> $GITHUB_ENV
-
-      - name: Clone Firmware Source
+      - name: Clone firmware source
         run: |
           git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
-          cd ./wrt/ && echo "WRT_HASH=$(git log -1 --pretty=format:'%h')" >> $GITHUB_ENV
-          PROJECT_MIRRORS_FILE="./scripts/projectsmirrors.json"
-          if [ -f "$PROJECT_MIRRORS_FILE" ]; then
-            sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
-          fi
-
-      - name: Normalize Scripts
-        run: |
-          find ./wrt/ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
-
-      - name: Update Feeds
-        run: |
           cd ./wrt/
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
+          echo "WRT_HASH=$(git log -1 --pretty=format:'%h')" >> $GITHUB_ENV
 
-      - name: Seed Config & Custom Packages
+      - name: Normalize scripts
+        run: |
+          find ./ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
+
+      - name: Apply package updates
         run: |
           cd ./wrt/
           cp nss-setup/config-nss.seed .config
           make defconfig -j$(nproc)
 
-          cd ./wrt/package/
           $GITHUB_WORKSPACE/Scripts/Packages.sh
           $GITHUB_WORKSPACE/Scripts/Handles.sh
 
-          cd ./wrt/
           if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
-            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
+              cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
           else
-            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+              cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
           fi
-          $GITHUB_WORKSPACE/Scripts/Settings.sh
 
+          $GITHUB_WORKSPACE/Scripts/Settings.sh
           make defconfig -j$(nproc) && make clean -j$(nproc)
 
-      - name: Download Packages
-        if: env.WRT_TEST != 'true'
+      - name: Download sources
+        if: ${{ env.WRT_TEST != 'true' }}
         run: |
           cd ./wrt/
-          make download -j$(nproc) V=s
+          make download -j$(nproc)
 
-      - name: Compile Firmware
-        if: env.WRT_TEST != 'true'
+      - name: Compile firmware
+        if: ${{ env.WRT_TEST != 'true' }}
         run: |
           cd ./wrt/
-          make -j1 V=s
+          make -j$(nproc) || make -j1 V=s
 
-      - name: Package Firmware
+      - name: Package firmware
         run: |
-          cd ./wrt/ && mkdir ./upload/
-          cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
-
+          cd ./wrt/ && mkdir -p ./upload/
+          cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_SOURCE"-"$WRT_BRANCH"-$(date +'%y.%m.%d-%H.%M.%S').txt
           if [[ $WRT_TEST != 'true' ]]; then
-            echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
-            echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
-
-            find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
-
-            for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
-              EXT=$(basename $FILE | cut -d '.' -f 2-)
-              NAME=$(basename $FILE | cut -d '.' -f 1 | grep -io "\($WRT_TARGET\).*")
-              NEW_FILE="$WRT_INFO"-"$WRT_BRANCH"-"$NAME"-"$WRT_DATE"."$EXT"
-              mv -f $FILE ./upload/$NEW_FILE
-            done
-
             find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
-
             make clean -j$(nproc)
           fi
 
-      - name: Release Firmware
-        uses: softprops/action-gh-release@master
+      - name: Create GitHub Release
+        if: ${{ env.WRT_TEST != 'true' }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-${{env.WRT_DATE}}
-          files: ./wrt/upload/*.*
+          tag_name: ${{ env.WRT_CONFIG }}-${{ env.WRT_SOURCE }}-${{ env.WRT_BRANCH }}-$(date +'%y.%m.%d-%H.%M.%S')
+          files: ./wrt/upload/*
           body: |
-            这是平台固件包，内含多个设备！请注意选择需要的设备固件！
-            源码：${{env.WRT_REPO}}
-            分支：${{env.WRT_BRANCH}}
-            提交：${{env.WRT_HASH}}
-            配置：${{env.WRT_CONFIG}}
-            平台：${{env.WRT_TARGET}}
-            登录地址：${{env.WRT_IP}}
-            登录密码：${{env.WRT_PW}}
-            WIFI名称：${{env.WRT_SSID}}
-            WIFI密码：${{env.WRT_WORD}}
-            内核版本：${{env.WRT_KVER}}
-            插件列表：${{env.WRT_LIST}}
+            固件由 GitHub Actions 自动生成
+            源码: ${{ env.WRT_REPO }}
+            分支: ${{ env.WRT_BRANCH }}
+            提交: ${{ env.WRT_HASH }}
+            配置: ${{ env.WRT_CONFIG }}
+            平台: ${{ env.WRT_SOURCE }}
+            登录地址: ${{ env.WRT_IP }}
+            WIFI: ${{ env.WRT_SSID }} / ${{ env.WRT_WORD }}
