@@ -57,7 +57,7 @@ jobs:
             build-essential flex bison gawk gcc-multilib g++-multilib \
             gettext libncurses5-dev libncursesw5-dev \
             zlib1g-dev libssl-dev libelf-dev \
-            python3 python3-distutils python3-setuptools \
+            python3 python3-setuptools \
             rsync unzip file wget curl git subversion bc dos2unix python3-netifaces libfuse-dev
           sudo -E apt -yqq purge firefox
           sudo -E apt -yqq full-upgrade
