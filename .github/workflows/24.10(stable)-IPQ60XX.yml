@@ -1,14 +1,6 @@
-#CI项目
-name: 24.10(stable)-IPQ60XX
+name: 24.10(stable)-IPQ60XX-qosmio
 
-#CI计划
 on:
-  #自动编译：当Auto-Clean运行完成后
-  workflow_run:
-    workflows: ["Auto-Clean"]
-    types:
-      - completed
-  #手动编译
   workflow_dispatch:
     inputs:
       PACKAGE:
@@ -20,46 +12,165 @@ on:
         default: 'false'
         required: false
         type: boolean
+  workflow_run:
+    workflows: ["Auto-Clean"]
+    types:
+      - completed
 
-#CI权限
 permissions: write-all
 
-#CI任务
 jobs:
-  config:
-    name: ${{matrix.CONFIG}}
+  build:
+    name: Build ${{ matrix.CONFIG }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      #max-parallel: 3
       matrix:
         CONFIG: [IPQ60XX-WIFI-YES]
         SOURCE: [qosmio/openwrt-ipq]
         BRANCH: [24.10-nss]
 
-    #调用公用编译核心WRT-CORE.yml
-    uses: ./.github/workflows/WRT-CORE.yml
-    with:
-      #编译配置
-      WRT_CONFIG: ${{matrix.CONFIG}}
-      #默认主题
+    env:
+      WRT_CONFIG: ${{ matrix.CONFIG }}
       WRT_THEME: argon
-      #默认主机名
       WRT_NAME: ImmortalWrt
-      #默认WIFI名称
       WRT_SSID: ImmortalWrt
-      #默认WIFI密码
       WRT_WORD: 12345678
-      #默认地址
       WRT_IP: 192.168.2.1
-      #默认密码，仅作提示，修改无用
       WRT_PW: 无
-      #源码链接
-      WRT_REPO: https://github.com/${{matrix.SOURCE}}.git
-      #源码分支
-      WRT_BRANCH: ${{matrix.BRANCH}}
-      #源码名称
-      WRT_SOURCE: ${{matrix.SOURCE}}
-      #插件调整
-      WRT_PACKAGE: ${{inputs.PACKAGE}}
-      #仅输出配置文件
-      WRT_TEST: ${{inputs.TEST}}
+      WRT_REPO: https://github.com/${{ matrix.SOURCE }}.git
+      WRT_BRANCH: ${{ matrix.BRANCH }}
+      WRT_SOURCE: ${{ matrix.SOURCE }}
+      WRT_PACKAGE: ${{ github.event.inputs.PACKAGE }}
+      WRT_TEST: ${{ github.event.inputs.TEST }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Initialize Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -E apt -yqq update
+          sudo -E apt -yqq install -y \
+            build-essential flex bison gawk gcc-multilib g++-multilib \
+            gettext libncurses5-dev libncursesw5-dev \
+            zlib1g-dev libssl-dev libelf-dev \
+            python3 python3-distutils python3-setuptools \
+            rsync unzip file wget curl git subversion bc dos2unix python3-netifaces libfuse-dev
+          sudo -E apt -yqq purge firefox
+          sudo -E apt -yqq full-upgrade
+          sudo -E apt -yqq autoremove --purge
+          sudo -E apt -yqq autoclean
+          sudo -E apt -yqq clean
+
+          sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
+          sudo -E systemctl daemon-reload
+          sudo -E timedatectl set-timezone "Asia/Shanghai"
+
+          sudo mkdir -p /mnt/build_wrt
+          sudo chown $USER:$USER /mnt/build_wrt
+          sudo ln -s /mnt/build_wrt $GITHUB_WORKSPACE/wrt
+
+      - name: Set Initialization Values
+        run: |
+          echo "WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d-%H.%M.%S")" >> $GITHUB_ENV
+          echo "WRT_MARK=${GITHUB_REPOSITORY%%/*}" >> $GITHUB_ENV
+          echo "WRT_INFO=${WRT_SOURCE%%/*}" >> $GITHUB_ENV
+          echo "WRT_TARGET=$(grep -m 1 -oP '^CONFIG_TARGET_\K[\w]+(?=\=y)' ./Config/$WRT_CONFIG.txt)" >> $GITHUB_ENV
+          echo "WRT_KVER=none" >> $GITHUB_ENV
+          echo "WRT_LIST=none" >> $GITHUB_ENV
+
+      - name: Clone Firmware Source
+        run: |
+          git clone --depth=1 --single-branch --branch $WRT_BRANCH $WRT_REPO ./wrt/
+          cd ./wrt/ && echo "WRT_HASH=$(git log -1 --pretty=format:'%h')" >> $GITHUB_ENV
+          PROJECT_MIRRORS_FILE="./scripts/projectsmirrors.json"
+          if [ -f "$PROJECT_MIRRORS_FILE" ]; then
+            sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
+          fi
+
+      - name: Normalize Scripts
+        run: |
+          find ./wrt/ -maxdepth 3 -type f -iregex ".*\(txt\|sh\)$" -exec dos2unix {} \; -exec chmod +x {} \;
+
+      - name: Update Feeds
+        run: |
+          cd ./wrt/
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Seed Config & Custom Packages
+        run: |
+          cd ./wrt/
+          cp nss-setup/config-nss.seed .config
+          make defconfig -j$(nproc)
+
+          cd ./wrt/package/
+          $GITHUB_WORKSPACE/Scripts/Packages.sh
+          $GITHUB_WORKSPACE/Scripts/Handles.sh
+
+          cd ./wrt/
+          if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
+            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
+          else
+            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+          fi
+          $GITHUB_WORKSPACE/Scripts/Settings.sh
+
+          make defconfig -j$(nproc) && make clean -j$(nproc)
+
+      - name: Download Packages
+        if: env.WRT_TEST != 'true'
+        run: |
+          cd ./wrt/
+          make download -j$(nproc) V=s
+
+      - name: Compile Firmware
+        if: env.WRT_TEST != 'true'
+        run: |
+          cd ./wrt/
+          make -j1 V=s
+
+      - name: Package Firmware
+        run: |
+          cd ./wrt/ && mkdir ./upload/
+          cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
+
+          if [[ $WRT_TEST != 'true' ]]; then
+            echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
+            echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
+
+            find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
+
+            for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
+              EXT=$(basename $FILE | cut -d '.' -f 2-)
+              NAME=$(basename $FILE | cut -d '.' -f 1 | grep -io "\($WRT_TARGET\).*")
+              NEW_FILE="$WRT_INFO"-"$WRT_BRANCH"-"$NAME"-"$WRT_DATE"."$EXT"
+              mv -f $FILE ./upload/$NEW_FILE
+            done
+
+            find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
+
+            make clean -j$(nproc)
+          fi
+
+      - name: Release Firmware
+        uses: softprops/action-gh-release@master
+        with:
+          tag_name: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_BRANCH}}-${{env.WRT_DATE}}
+          files: ./wrt/upload/*.*
+          body: |
+            这是平台固件包，内含多个设备！请注意选择需要的设备固件！
+            源码：${{env.WRT_REPO}}
+            分支：${{env.WRT_BRANCH}}
+            提交：${{env.WRT_HASH}}
+            配置：${{env.WRT_CONFIG}}
+            平台：${{env.WRT_TARGET}}
+            登录地址：${{env.WRT_IP}}
+            登录密码：${{env.WRT_PW}}
+            WIFI名称：${{env.WRT_SSID}}
+            WIFI密码：${{env.WRT_WORD}}
+            内核版本：${{env.WRT_KVER}}
+            插件列表：${{env.WRT_LIST}}
