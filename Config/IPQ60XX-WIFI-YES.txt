@@ -1,11 +1,15 @@
-#设备平台
+# 多配置
+CONFIG_TARGET_MULTI_PROFILE=y
+CONFIG_TARGET_PER_DEVICE_ROOTFS=y
+CONFIG_TARGET_ROOTFS_INITRAMFS=n
+
+# 设备平台（保持你目标设备）
 CONFIG_TARGET_qualcommax=y
 CONFIG_TARGET_qualcommax_ipq60xx=y
-#设备列表
 CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-ss-01=y
 
 #######################################
-# ⚙️ 内存与平台配置
+# ⚙️ 内存与平台配置（保留）
 #######################################
 CONFIG_IPQ_MEM_PROFILE_1024=y
 CONFIG_ATH11K_MEM_PROFILE_1024M=y
@@ -14,7 +18,7 @@ CONFIG_KERNEL_SKB_RECYCLER=y
 CONFIG_KERNEL_SKB_RECYCLER_MULTI_CPU=y
 
 #######################################
-# 🚀 NSS 主驱动模块
+# 🚀 NSS 主驱动模块（保留）
 #######################################
 CONFIG_PACKAGE_kmod-qca-nss-drv=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-bridge-mgr=y
@@ -27,7 +31,7 @@ CONFIG_PACKAGE_kmod-qca-nss-drv-crypto=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-qdisc=y
 
 #######################################
-# 🧠 ECM（流分类硬件加速）
+# 🧠 ECM（流分类硬件加速）（保留）
 #######################################
 CONFIG_PACKAGE_kmod-qca-nss-ecm=y
 CONFIG_PACKAGE_kmod-qca-nss-ecm-standard=y
@@ -37,7 +41,7 @@ CONFIG_PACKAGE_kmod-qca-nss-ecm-vlan=y
 CONFIG_PACKAGE_kmod-qca-nss-ecm-pppoe=y
 
 #######################################
-# 🛜 WiFi + NSS + Mesh 支持
+# 🛜 WiFi + NSS + Mesh 支持（保留）
 #######################################
 CONFIG_PACKAGE_kmod-ath11k=y
 CONFIG_PACKAGE_kmod-ath11k-pci=y
@@ -46,14 +50,14 @@ CONFIG_PACKAGE_MAC80211_MESH=y
 CONFIG_ATH11K_NSS_MESH_SUPPORT=y
 
 #######################################
-# 🧩 NSS 辅助模块（可选）
+# 🧩 NSS 辅助模块（可选/保留）
 #######################################
 CONFIG_PACKAGE_kmod-qca-nss-drv-tls=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-ipsec=y
 CONFIG_PACKAGE_kmod-qca-mcs=y
 
 #######################################
-# 📈 SQM + QoS 结合 NSS
+# 📈 SQM + QoS 结合 NSS（保留）
 #######################################
 CONFIG_PACKAGE_sqm-scripts-nss=y
 
