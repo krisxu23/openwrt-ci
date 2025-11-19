@@ -19,7 +19,7 @@
 
 ---
 
-## 🚀 京东云亚瑟 (IPQ60xx) 1GB 硬改专用 | 满血 NSS + Docker
+## 🚀 京东云亚瑟 (IPQ60xx) 1GB 硬改专用 | 满血 NSS
 
 > **⚠️ 警告：本固件专为硬改 1GB 内存的亚瑟 (JDCloud RE-SS-01) 打造，未改内存的原厂 512M 设备请勿刷入！**
 
@@ -30,7 +30,6 @@
 - **1GB 内存解锁**：启用 `MEM_PROFILE_1024`，完整映射 1GB 物理内存，专为大内存环境优化的 WiFi 缓冲区配置。
 - **NSS 满血硬解**：集成 `qca-nss-ecm` 全家桶，路由转发、桥接、PPPoE、VLAN、WiFi 数据包全部由 NPU 硬件接管。
 - **零负载转发**：在跑满千兆/2.5G 网络时，CPU 占用率近乎 0%。
-- **Docker 容器平台**：内置完整 Docker 引擎 (`dockerd`) 及图形化管理 (`dockerman`)。
 - **无限扩展**：利用 1GB 内存优势，可稳定运行 HomeAssistant、Python 脚本、Alist 等容器。
 
 ### ⚡ 性能与加速
@@ -50,7 +49,7 @@
 - **外设支持**：支持 USB 打印机共享 (`p910nd`)、USB 摄像头 (`uvc`)、USB 转串口 (CH341/CP210x 等)。
 
 ### 🛠️ 实用插件与工具
-- **网络增强**：集成 MosDNS、HomeProxy、Passwall、OpenClash、UPnP。
+- **网络增强**：集成 MosDNS、HomeProxy、UPnP。
 - **系统管理**：Argon 主题 (带配置)、TTYD (网页终端)、CPU 频率调节、定时重启、内存释放。
 - **运维工具**：curl (SSL), wget, htop, iperf3, bind-dig。
 - **解压全能**：7zip, unrar, unzip, zstd (比 Busybox 自带的更强)。
