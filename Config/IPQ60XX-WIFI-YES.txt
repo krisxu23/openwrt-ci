@@ -1,38 +1,61 @@
-# ===== IPQ60xx 平台基础 =====
+# =========================================================
+#  IPQ60XX-WIFI-YES.txt - 京东云亚瑟 1GB 魔改专用配置
+# =========================================================
+
+# --- 1. 目标平台定义 ---
 CONFIG_TARGET_qualcommax=y
 CONFIG_TARGET_qualcommax_ipq60xx=y
 CONFIG_TARGET_DEVICE_qualcommax_ipq60xx_DEVICE_jdcloud_re-ss-01=y
 
-# ===== 内存与性能优化 (1GB 专用) =====
-# 1. 内存布局
+# --- 2. 内存与性能优化 (1GB 硬改核心) ---
+# 警告：未改 1G 内存的设备请勿使用此段配置
 CONFIG_IPQ_MEM_PROFILE_1024=y
 CONFIG_ATH11K_MEM_PROFILE_1024M=y
 CONFIG_NSS_MEM_PROFILE_HIGH=y
 
-# 2. 内核网络栈优化
+# --- 3. 内核与架构优化 ---
 CONFIG_KERNEL_SKB_RECYCLER=y
 CONFIG_KERNEL_SKB_RECYCLER_MULTI_CPU=y
 CONFIG_PACKAGE_kmod-qca-mcs=y
+CONFIG_TARGET_KERNEL_PARTSIZE=32
+CONFIG_TARGET_MULTI_PROFILE=y
+CONFIG_TARGET_PER_DEVICE_ROOTFS=y
 
-# 3. NSS 驱动与管理 (ECM)
+# ARMv8 硬件加密指令集
+CONFIG_KERNEL_CRYPTO_AES_ARM64_CE=y
+CONFIG_KERNEL_CRYPTO_SHA256_ARM64=y
+
+# USB 控制器驱动 (IPQ60xx 专用)
+CONFIG_PACKAGE_kmod-usb-dwc3=y
+CONFIG_PACKAGE_kmod-usb-xhci=y
+
+# --- 4. NSS 硬件加速全家桶 (NPU) ---
+# 核心驱动与 ECM 调度器
 CONFIG_PACKAGE_kmod-qca-nss-drv=y
 CONFIG_PACKAGE_kmod-qca-nss-ecm=y
+# 各种协议的硬件卸载支持
 CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-bridge-mgr=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-vlan-mgr=y
 CONFIG_PACKAGE_kmod-qca-nss-drv-qdisc=y
-
-# 4. 加密加速
+# 加密协处理器支持 (加速 HTTPS/VPN)
 CONFIG_PACKAGE_kmod-qca-nss-crypto=y
 CONFIG_PACKAGE_kmod-qca-nss-cfi-cryptoapi=y
 
-# 5. 流量控制 (SQM)
+# --- 5. WiFi 驱动与硬件卸载 ---
+CONFIG_PACKAGE_kmod-ath11k-pci=m
+CONFIG_ATH11K_NSS_SUPPORT=y
+CONFIG_ATH11K_NSS_MESH_SUPPORT=y
+CONFIG_NSS_DRV_WIFI_MESH_ENABLE=y
+CONFIG_PACKAGE_MAC80211_MESH=y
+
+# --- 6. 流量控制与 QoS (NSS版) ---
 CONFIG_PACKAGE_luci-app-sqm=y
 CONFIG_PACKAGE_sqm-scripts-nss=y
 
-# 6. WiFi 与 Mesh 互联
-CONFIG_PACKAGE_kmod-ath11k-pci=m
-CONFIG_ATH11K_NSS_SUPPORT=y
-CONFIG_NSS_DRV_WIFI_MESH_ENABLE=y
-CONFIG_PACKAGE_MAC80211_MESH=y
-CONFIG_ATH11K_NSS_MESH_SUPPORT=y
+# --- 7. [重要] 禁用软件加速 (防止与 NSS 冲突) ---
+# 显式禁用通用软件流卸载
+# CONFIG_PACKAGE_kmod-nft-offload is not set
+# CONFIG_PACKAGE_kmod-ipt-offload is not set
+# CONFIG_FIREWALL4_NFTOFFLOAD is not set
+# CONFIG_NF_FLOW_TABLEING is not set
