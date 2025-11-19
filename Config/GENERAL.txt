@@ -5,7 +5,7 @@
 # --- 编译基础设定 ---
 CONFIG_CCACHE=y
 CONFIG_BUSYBOX_CUSTOM=y
-# 增大 RootFS 大小以容纳 Docker 和 Python (针对大存储设备)
+# 增大 RootFS 大小以容纳 Docker (针对大存储设备)
 CONFIG_TARGET_ROOTFS_PARTSIZE=1024
 CONFIG_TARGET_ROOTFS_SQUASHFS=y
 
@@ -27,8 +27,6 @@ CONFIG_PACKAGE_luci-app-mosdns=y
 CONFIG_PACKAGE_luci-app-homeproxy=y
 CONFIG_PACKAGE_luci-app-momo=y
 CONFIG_PACKAGE_luci-app-nikki=y
-CONFIG_PACKAGE_luci-app-openclash=y
-CONFIG_PACKAGE_luci-app-passwall=y
 CONFIG_PACKAGE_luci-app-autoreboot=y
 CONFIG_PACKAGE_luci-app-cpufreq=y
 CONFIG_PACKAGE_luci-app-ttyd=y
