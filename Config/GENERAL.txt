@@ -53,13 +53,6 @@ CONFIG_PACKAGE_kmod-veth=y
 CONFIG_PACKAGE_cgroupfs-mount=y
 # 某些架构可能需要选上 runc 或 containerd，通常 dockerd 会自动依赖
 
-# --- Python3 完整环境 ---
-CONFIG_PACKAGE_python3=y
-CONFIG_PACKAGE_python3-pip=y
-CONFIG_PACKAGE_python3-base=y
-CONFIG_PACKAGE_python3-yaml=y
-CONFIG_PACKAGE_python3-requests=y
-
 # --- 全能文件系统驱动 ---
 CONFIG_PACKAGE_block-mount=y
 CONFIG_PACKAGE_mount-utils=y
