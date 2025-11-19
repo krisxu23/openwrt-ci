@@ -1,8 +1,15 @@
-# =====通用配置 =====
+# =========================================================
+#  GENERAL.txt - 通用应用与基础环境 (适用于多平台)
+# =========================================================
+
+# --- 编译基础设定 ---
 CONFIG_CCACHE=y
 CONFIG_BUSYBOX_CUSTOM=y
+# 增大 RootFS 大小以容纳 Docker 和 Python (针对大存储设备)
+CONFIG_TARGET_ROOTFS_PARTSIZE=1024
+CONFIG_TARGET_ROOTFS_SQUASHFS=y
 
-# LuCI 核心
+# --- LuCI 核心与主题 ---
 CONFIG_PACKAGE_luci=y
 CONFIG_PACKAGE_luci-base=y
 CONFIG_PACKAGE_luci-mod-admin-full=y
@@ -12,162 +19,114 @@ CONFIG_PACKAGE_luci-lib-base=y
 CONFIG_PACKAGE_luci-lib-ip=y
 CONFIG_PACKAGE_luci-lib-jsonc=y
 CONFIG_PACKAGE_luci-lib-nixio=y
-
-# LuCI 插件
 CONFIG_PACKAGE_luci-app-argon-config=y
 CONFIG_PACKAGE_luci-theme-argon=y
+
+# --- 关键应用插件 (科学/DNS/管理) ---
 CONFIG_PACKAGE_luci-app-mosdns=y
 CONFIG_PACKAGE_luci-app-homeproxy=y
 CONFIG_PACKAGE_luci-app-momo=y
 CONFIG_PACKAGE_luci-app-nikki=y
+CONFIG_PACKAGE_luci-app-openclash=y
+CONFIG_PACKAGE_luci-app-passwall=y
 CONFIG_PACKAGE_luci-app-autoreboot=y
 CONFIG_PACKAGE_luci-app-cpufreq=y
 CONFIG_PACKAGE_luci-app-ttyd=y
 CONFIG_PACKAGE_luci-app-upnp=y
-
-# 磁盘管理 & 文件管理器
-CONFIG_PACKAGE_luci-app-diskman=y
-CONFIG_PACKAGE_luci-lib-diskinfo=y
+CONFIG_PACKAGE_luci-app-ramfree=y
 CONFIG_PACKAGE_luci-app-filebrowser=y
 
-# 内核加速 / zram
-CONFIG_PACKAGE_zram-swap=y
-CONFIG_PACKAGE_kmod-zram=y
-CONFIG_KERNEL_CRYPTO_AES_ARM64_CE=y
-CONFIG_KERNEL_CRYPTO_SHA256_ARM64=y
-CONFIG_PACKAGE_kmod-tun=y
+# --- 磁盘管理与分区工具 ---
+CONFIG_PACKAGE_luci-app-diskman=y
+CONFIG_PACKAGE_luci-lib-diskinfo=y
+CONFIG_PACKAGE_luci-app-partexp=y
+CONFIG_PACKAGE_parted=y
+CONFIG_PACKAGE_smartmontools=y
+CONFIG_PACKAGE_fdisk=y
+CONFIG_PACKAGE_lsblk=y
+CONFIG_PACKAGE_blkid=y
 
-# USB
+# --- Docker 容器化环境 (通用) ---
+CONFIG_PACKAGE_dockerd=y
+CONFIG_PACKAGE_luci-app-dockerman=y
+CONFIG_PACKAGE_kmod-veth=y
+CONFIG_PACKAGE_cgroupfs-mount=y
+# 某些架构可能需要选上 runc 或 containerd，通常 dockerd 会自动依赖
+
+# --- Python3 完整环境 ---
+CONFIG_PACKAGE_python3=y
+CONFIG_PACKAGE_python3-pip=y
+CONFIG_PACKAGE_python3-base=y
+CONFIG_PACKAGE_python3-yaml=y
+CONFIG_PACKAGE_python3-requests=y
+
+# --- 全能文件系统驱动 ---
+CONFIG_PACKAGE_block-mount=y
+CONFIG_PACKAGE_mount-utils=y
+CONFIG_PACKAGE_kmod-fs-ext4=y
+CONFIG_PACKAGE_kmod-fs-vfat=y
+CONFIG_PACKAGE_kmod-fs-exfat=y
+CONFIG_PACKAGE_kmod-fs-ntfs3=y
+CONFIG_PACKAGE_kmod-fs-btrfs=y
+CONFIG_PACKAGE_kmod-fs-xfs=y
+CONFIG_PACKAGE_kmod-fuse=y
+CONFIG_PACKAGE_kmod-usb-storage-exfat=y
+
+# --- USB 基础与通用设备 ---
 CONFIG_PACKAGE_kmod-usb-core=y
 CONFIG_PACKAGE_kmod-usb2=y
 CONFIG_PACKAGE_kmod-usb3=y
-CONFIG_PACKAGE_kmod-usb-dwc3=y
-CONFIG_PACKAGE_kmod-usb-xhci=y
 CONFIG_PACKAGE_kmod-usb-storage=y
 CONFIG_PACKAGE_kmod-usb-storage-extras=y
 CONFIG_PACKAGE_kmod-usb-storage-uas=y
+CONFIG_PACKAGE_kmod-usb-printer=y
+CONFIG_PACKAGE_kmod-video-uvc=y
+
+# --- USB 网卡/4G 模组驱动 (通用) ---
 CONFIG_PACKAGE_kmod-usb-net=y
 CONFIG_PACKAGE_kmod-usb-net-asix-ax88179=y
 CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-eem=y
 CONFIG_PACKAGE_kmod-usb-net-cdc-ether=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
 CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-subset=y
 CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=y
-CONFIG_PACKAGE_kmod-usb-net-ipheth=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-fibocom=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-quectel=y
 CONFIG_PACKAGE_kmod-usb-net-rndis=y
-CONFIG_PACKAGE_kmod-usb-net-rtl8150=y
-CONFIG_PACKAGE_kmod-usb-audio=y
-CONFIG_PACKAGE_kmod-usb-acm=y
-CONFIG_PACKAGE_kmod-usb-serial-qualcomm=y
-CONFIG_PACKAGE_kmod-usb-serial-wwan=y
+CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
+# 包含常用的串口驱动 (用于调试/物联网)
+CONFIG_PACKAGE_kmod-usb-serial=y
+CONFIG_PACKAGE_kmod-usb-serial-ch341=y
+CONFIG_PACKAGE_kmod-usb-serial-cp210x=y
+CONFIG_PACKAGE_kmod-usb-serial-ftdi=y
+CONFIG_PACKAGE_kmod-usb-serial-pl2303=y
 
-# 网络/加速/NFT
-CONFIG_PACKAGE_kmod-bonding=y
-CONFIG_PACKAGE_kmod-dsa=y
-CONFIG_PACKAGE_kmod-fuse=y
-CONFIG_PACKAGE_kmod-inet-diag=y
-
-# nftables 相关
-CONFIG_PACKAGE_kmod-nft-arp=y
-CONFIG_PACKAGE_kmod-nft-bridge=y
-CONFIG_PACKAGE_kmod-nft-connlimit=y
-CONFIG_PACKAGE_kmod-nft-core=y
-CONFIG_PACKAGE_kmod-nft-dup-inet=y
-CONFIG_PACKAGE_kmod-nft-fib=y
-CONFIG_PACKAGE_kmod-nft-fullcone=y
-CONFIG_PACKAGE_kmod-nft-nat=y
-CONFIG_PACKAGE_kmod-nft-netdev=y
-CONFIG_PACKAGE_kmod-nft-offload=y
-CONFIG_PACKAGE_kmod-nft-queue=y
-CONFIG_PACKAGE_kmod-nft-socket=y
-CONFIG_PACKAGE_kmod-nft-tproxy=y
-CONFIG_PACKAGE_kmod-nft-xfrm=y
-
-# iptables / fullcone 
-CONFIG_PACKAGE_kmod-ipt-conntrack=y
-CONFIG_PACKAGE_kmod-ipt-nat=y
-CONFIG_PACKAGE_kmod-ipt-fullconenat=y
-CONFIG_PACKAGE_iptables-mod-fullconenat=y
-CONFIG_PACKAGE_iptables-mod-ipopt=y
-CONFIG_PACKAGE_ipt2socks=m
-
-# 系统组件
-CONFIG_PACKAGE_autocore=y
-CONFIG_PACKAGE_automount=y
-CONFIG_PACKAGE_dmesg=y
-CONFIG_PACKAGE_ip-full=y
+# --- 系统运维与解压工具 ---
+CONFIG_PACKAGE_curl=y
+CONFIG_LIBCURL_COOKIES=y
+CONFIG_LIBCURL_OPENSSL=y
+CONFIG_PACKAGE_wget-ssl=y
 CONFIG_PACKAGE_htop=y
+CONFIG_PACKAGE_iperf3=y
+CONFIG_PACKAGE_bind-dig=y
 CONFIG_PACKAGE_openssh-keygen=y
 CONFIG_PACKAGE_openssl-util=y
-CONFIG_PACKAGE_firewall4=y
-CONFIG_PACKAGE_dnsmasq-full=y
-CONFIG_PACKAGE_libcap=y
-CONFIG_PACKAGE_libcap-ng=y
-CONFIG_PACKAGE_libbpf=m
-CONFIG_PACKAGE_libopenssl-conf=y
-CONFIG_PACKAGE_libopenssl-legacy=y
-
-# 网络工具 / 协议支持
-CONFIG_PACKAGE_curl=y
-CONFIG_LIBCURL_HTTP=y
-CONFIG_LIBCURL_FTP=y
-CONFIG_LIBCURL_OPENSSL=y
-CONFIG_LIBCURL_NGHTTP2=y
-CONFIG_LIBCURL_PROXY=y
-CONFIG_LIBCURL_FILE=y
-CONFIG_LIBCURL_COOKIES=y
-CONFIG_LIBCURL_TLS_SRP=y
-CONFIG_LIBCURL_UNIX_SOCKETS=y
-CONFIG_LIBCURL_THREADED_RESOLVER=y
-
-# UPnP - 使用 nftables 版本
-CONFIG_PACKAGE_miniupnpd-nftables=y
-
-# 文件系统
-CONFIG_TARGET_ROOTFS_PARTSIZE=512
-CONFIG_TARGET_ROOTFS_SQUASHFS=y
-CONFIG_TARGET_KERNEL_PARTSIZE=32
-
-# 可选扩展文件系统支持
-CONFIG_PACKAGE_block-mount=y
-CONFIG_PACKAGE_kmod-fs-ext4=y
-CONFIG_PACKAGE_kmod-usb-storage-exfat=y
-
-# 多配置
-CONFIG_TARGET_MULTI_PROFILE=y
-CONFIG_TARGET_PER_DEVICE_ROOTFS=y
-CONFIG_TARGET_ROOTFS_INITRAMFS=n
-
-# 网络诊断工具
-CONFIG_PACKAGE_tcpdump=y
-CONFIG_PACKAGE_iperf3=y
-CONFIG_PACKAGE_mtr=y
-
-# 系统监控 & 日志
-CONFIG_PACKAGE_logread=y
-CONFIG_PACKAGE_collectd=y
-CONFIG_PACKAGE_collectd-mod-interface=y
-CONFIG_PACKAGE_collectd-mod-iptables=y
-
-# 安全增强（可选）
-CONFIG_PACKAGE_owut=y
-
-# QoS & SQM增强
-CONFIG_PACKAGE_sqm-scripts=y
-CONFIG_PACKAGE_qos-scripts=y
-
-# 系统维护
+CONFIG_PACKAGE_p7zip=y
+CONFIG_PACKAGE_unrar=y
+CONFIG_PACKAGE_unzip=y
+CONFIG_PACKAGE_zstd=y
 CONFIG_PACKAGE_sysupgrade=y
 CONFIG_PACKAGE_restores.sh=y
 
-# === 轻量补齐 ===
-CONFIG_PACKAGE_luci-app-sqm=y
-CONFIG_PACKAGE_luci-app-cpulimit=y
-CONFIG_PACKAGE_cpulimit=y
-CONFIG_PACKAGE_luci-app-ramfree=y
-CONFIG_PACKAGE_smartmontools=y
+# --- 网络协议组件 (TUN/TAP/NFT) ---
+CONFIG_PACKAGE_kmod-tun=y
+CONFIG_PACKAGE_ip-full=y
+CONFIG_PACKAGE_libcap=y
+CONFIG_PACKAGE_libcap-ng=y
+CONFIG_PACKAGE_firewall4=y
+CONFIG_PACKAGE_dnsmasq-full=y
+CONFIG_PACKAGE_miniupnpd-nftables=y
+
+# NFTables 核心模块 (注意：此处不包含 offload，防止冲突)
+CONFIG_PACKAGE_kmod-nft-core=y
+CONFIG_PACKAGE_kmod-nft-bridge=y
+CONFIG_PACKAGE_kmod-nft-nat=y
+CONFIG_PACKAGE_kmod-nft-socket=y
+CONFIG_PACKAGE_kmod-nft-tproxy=y
