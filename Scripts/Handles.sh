@@ -95,3 +95,54 @@ if [ -f "$ASU_FILE" ]; then
 
 	cd $PKG_PATH && echo "attendedsysupgrade has been fixed!"
 fi
+
+
+# =======================================================
+# 修复 NSS ECM 在 Kernel 6.x 下不自动加载的问题 (优化版)
+# =======================================================
+echo " "
+# 1. 智能定位 base-files 路径
+BF_PATH=$(find . -type d -name "base-files" | head -n 1)
+
+if [ -n "$BF_PATH" ]; then
+    # 确保目录存在
+    mkdir -p "$BF_PATH/files/etc/uci-defaults"
+    
+    # 2. 写入自动化脚本 (99-fix-nss-ecm)
+    cat > "$BF_PATH/files/etc/uci-defaults/99-fix-nss-ecm" << 'EOF'
+#!/bin/sh
+# Auto-fix ECM autoload for Kernel 6.x/5.x
+# Optimized by user request
+
+ECM_NEW="/lib/modules/$(uname -r)/ecm.ko"
+ECM_OLD="/lib/modules/$(uname -r)/qca-nss-ecm.ko"
+
+# 1. Check for New ECM name (Kernel 6.x / Mainstream)
+if [ -f "$ECM_NEW" ]; then
+    # Only append if not already present
+    if ! grep -qxF "ecm" /etc/modules; then
+        echo "ecm" >> /etc/modules
+        logger -t nss_fix "ECM detected (ecm.ko). Added to /etc/modules"
+    fi
+    # Load immediately to avoid reboot requirement
+    modprobe ecm 2>/dev/null
+
+# 2. Check for Old ECM name (Kernel 5.x / QSDK Legacy)
+elif [ -f "$ECM_OLD" ]; then
+    if ! grep -qxF "qca-nss-ecm" /etc/modules; then
+        echo "qca-nss-ecm" >> /etc/modules
+        logger -t nss_fix "ECM detected (qca-nss-ecm.ko). Added to /etc/modules"
+    fi
+    modprobe qca-nss-ecm 2>/dev/null
+fi
+
+# Exit 0 to indicate success (OpenWrt will auto-delete this script after running)
+exit 0
+EOF
+    
+    # 3. 赋予执行权限
+    chmod +x "$BF_PATH/files/etc/uci-defaults/99-fix-nss-ecm"
+    echo "NSS ECM autoload fix (Optimized) has been injected!"
+else
+    echo "WARNING: base-files directory not found, NSS fix skipped."
+fi
